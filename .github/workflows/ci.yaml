@@ -3,11 +3,11 @@ name: Continuous Integration
 on: [push]
 
 jobs:
-  test:
+  check:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
         poetry-version: [1.1.4]
     
     steps:
@@ -19,7 +19,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Setup poetry ${{ matrix.poetry-version }}
-      uses: abatilo/actions-poetry@v2
+      uses: abatilo/actions-poetry@v2.0.0
       with:
         poetry-version: ${{ matrix.poetry-version }}
 
@@ -38,39 +38,6 @@ jobs:
     
     - name: Run pytest
       run: poetry run pytest
-
-  lint:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.6, 3.7, 3.8]
-        poetry-version: [1.1.4]
-    
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Setup python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Setup poetry ${{ matrix.poetry-version }}
-      uses: abatilo/actions-poetry@v2
-      with:
-        poetry-version: ${{ matrix.poetry-version }}
-
-    - name: Cache virtualenv
-      uses: actions/cache@v1
-      id: cache
-      with:
-        path: ~/.virtualenvs
-        key: poetry-$
-        restore-keys: |
-          poetry-$
-
-    - name: Install dependencies
-      run: poetry install
-      if: steps.cache.outputs.cache-hit != 'true'
     
     - name: Run flake8
       run: poetry run flake8
