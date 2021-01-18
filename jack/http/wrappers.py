@@ -38,7 +38,7 @@ class JackToAsgi:
                 body=get_request_body(receive),
             )
             try:
-                response = await self.view(request)
+                response = await self.view(request, **scope.get('params', {}))
                 await send({
                     'type': 'http.response.start',
                     'status': response.status,
@@ -103,7 +103,7 @@ class AsgiToJack:
     def __init__(self, app):
         self.app = guarantee_single_callable(app)
 
-    async def __call__(self, request):
+    async def __call__(self, request, **params):
         input_queue = asyncio.Queue()
         output_queue = asyncio.Queue()
         scope = {
@@ -117,6 +117,7 @@ class AsgiToJack:
                 (key.encode(), value.encode())
                 for key, value in request.headers.allitems()
             ],
+            'params': params,
         }
         asyncio.create_task(
             self.app(scope, input_queue.get, output_queue.put)
