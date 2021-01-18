@@ -3,10 +3,10 @@ import urllib.parse
 
 import pytest
 
-from jack.http import asgi_to_jack, jack_to_asgi, Request, TextResponse
+from jackie.http import asgi_to_jackie, jackie_to_asgi, Request, TextResponse
 
 
-# The same app implemented in Jack and ASGI
+# The same app implemented in Jackie and ASGI
 
 async def hello_world_view(request):
     name = request.query.get('name', 'World')
@@ -30,7 +30,7 @@ async def hello_world_app(scope, receive, send):
 
 @pytest.mark.asyncio
 async def test_jack_to_asgi():
-    app = jack_to_asgi(hello_world_view)
+    app = jackie_to_asgi(hello_world_view)
 
     input_queue = asyncio.Queue()
     output_queue = asyncio.Queue()
@@ -90,7 +90,7 @@ async def test_jack_to_asgi():
 
 @pytest.mark.asyncio
 async def test_asgi_to_jack():
-    view = asgi_to_jack(hello_world_app)
+    view = asgi_to_jackie(hello_world_app)
 
     response = await view(Request())
     assert response.status == 200

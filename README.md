@@ -1,9 +1,9 @@
-# Jack
-A minimal ASGI web framework.
+# Jackie
+A minimal [ASGI](https://asgi.readthedocs.io/en/latest/) web framework.
 
 ```python
-from jack.router import Router
-from jack.http import TextResponse
+from jackie.router import Router
+from jackie.http import TextResponse
 
 app = Router()
 

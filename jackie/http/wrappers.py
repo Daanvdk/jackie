@@ -8,7 +8,7 @@ from .request import Request
 from .response import Response
 
 
-# Jack to ASGI
+# Jackie to ASGI
 
 async def get_request_body(receive):
     while True:
@@ -23,7 +23,7 @@ async def get_request_body(receive):
             raise ValueError(f'unexpected message type: {message["type"]}')
 
 
-class JackToAsgi:
+class JackieToAsgi:
 
     def __init__(self, view):
         self.view = view
@@ -68,7 +68,7 @@ class JackToAsgi:
             raise ValueError(f'unsupported scope type: {scope["type"]}')
 
 
-# ASGI to Jack
+# ASGI to Jackie
 
 async def send_request_body(chunks, send):
     try:
@@ -98,7 +98,7 @@ async def get_response_body(receive):
             raise ValueError(f'unexpected message type: {message["type"]}')
 
 
-class AsgiToJack:
+class AsgiToJackie:
 
     def __init__(self, app):
         self.app = guarantee_single_callable(app)
@@ -137,15 +137,15 @@ class AsgiToJack:
 
 # Decorators
 
-def jack_to_asgi(view):
-    if isinstance(view, AsgiToJack):
+def jackie_to_asgi(view):
+    if isinstance(view, AsgiToJackie):
         return view.app
     else:
-        return JackToAsgi(view)
+        return JackieToAsgi(view)
 
 
-def asgi_to_jack(app):
-    if isinstance(app, JackToAsgi):
+def asgi_to_jackie(app):
+    if isinstance(app, JackieToAsgi):
         return app.view
     else:
-        return AsgiToJack(app)
+        return AsgiToJackie(app)

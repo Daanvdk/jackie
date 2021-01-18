@@ -1,6 +1,6 @@
 import pytest
 
-from jack.multidict import MultiDict
+from jackie.multidict import MultiDict
 
 
 def test_get():

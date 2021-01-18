@@ -1,7 +1,7 @@
 import pytest
 
-from jack.router import Router
-from jack.http import asgi_to_jack, Request, TextResponse
+from jackie.router import Router
+from jackie.http import asgi_to_jackie, Request, TextResponse
 
 
 app = Router()
@@ -72,7 +72,7 @@ async def user_delete(request, user_id):
 
 
 # Easier to test
-view = asgi_to_jack(app)
+view = asgi_to_jackie(app)
 
 
 @pytest.mark.asyncio

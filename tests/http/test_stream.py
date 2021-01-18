@@ -1,7 +1,7 @@
 import asyncio
 import pytest
 
-from jack.http.stream import Stream
+from jackie.http.stream import Stream
 
 
 @pytest.mark.asyncio

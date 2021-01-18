@@ -1,5 +1,5 @@
 from ..http import TextResponse
-from ..http.wrappers import jack_to_asgi, AsgiToJack, JackToAsgi
+from ..http.wrappers import jackie_to_asgi, AsgiToJackie, JackieToAsgi
 from .matcher import Matcher
 
 
@@ -15,10 +15,10 @@ async def method_not_allowed(request, methods):
     )
 
 
-class Router(JackToAsgi):
+class Router(JackieToAsgi):
 
     def __init__(self):
-        super().__init__(JackRouter(self))
+        super().__init__(JackieRouter(self))
         self._routes = []
         self._not_found = not_found
         self._method_not_allowed = method_not_allowed
@@ -129,11 +129,11 @@ class Router(JackToAsgi):
         except KeyError:
             pass
         scope = {**scope, 'params': params}
-        app = jack_to_asgi(view)
+        app = jackie_to_asgi(view)
         return await app(scope, receive, send)
 
 
-class JackRouter(AsgiToJack):
+class JackieRouter(AsgiToJackie):
 
     def __init__(self, app):
         super().__init__(app)
