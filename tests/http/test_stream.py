@@ -47,37 +47,37 @@ async def test_str_to_chunks():
 
 
 @pytest.mark.asyncio
-async def test_async_chunks_to_content():
+async def test_async_chunks_to_body():
     async def async_chunks():
         yield b'foo'
         yield b'bar'
     stream = Stream(async_chunks())
-    content = await stream.content()
-    assert content == b'foobar'
+    body = await stream.body()
+    assert body == b'foobar'
 
 
 @pytest.mark.asyncio
-async def test_chunks_to_content():
+async def test_chunks_to_body():
     def chunks():
         yield b'foo'
         yield b'bar'
     stream = Stream(chunks())
-    content = await stream.content()
-    assert content == b'foobar'
+    body = await stream.body()
+    assert body == b'foobar'
 
 
 @pytest.mark.asyncio
-async def test_bytes_to_content():
+async def test_bytes_to_body():
     stream = Stream(b'foobar')
-    content = await stream.content()
-    assert content == b'foobar'
+    body = await stream.body()
+    assert body == b'foobar'
 
 
 @pytest.mark.asyncio
-async def test_str_to_content():
+async def test_str_to_body():
     stream = Stream('foobar')
-    content = await stream.content()
-    assert content == b'foobar'
+    body = await stream.body()
+    assert body == b'foobar'
 
 
 @pytest.mark.asyncio

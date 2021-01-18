@@ -83,7 +83,7 @@ class MultiDict(MutableMapping):
         return value
 
 
-class Headers:
+class Headers(MultiDict):
 
     def _clean_key(self, key):
         if isinstance(key, bytes):

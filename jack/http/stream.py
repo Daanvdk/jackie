@@ -33,14 +33,14 @@ class Stream:
                 break
             index += 1
 
-    async def content(self):
+    async def body(self):
         chunks = []
         async for chunk in self.chunks():
             chunks.append(chunk)
         return b''.join(chunks)
 
     async def text(self):
-        return (await self.content()).decode()
+        return (await self.body()).decode()
 
     async def json(self):
-        return json.loads(await self.content())
+        return json.loads(await self.body())
