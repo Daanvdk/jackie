@@ -13,6 +13,8 @@ class MultiDict(MutableMapping):
             items = chain(items, kwargs.items())
         values = {}
         for key, value in items:
+            key = self._clean_key(key)
+            value = self._clean_value(value)
             values.setdefault(key, []).append(value)
         self._values = values
 

@@ -4,7 +4,9 @@ from ..multidict import Headers
 from .stream import Stream
 
 
-class HttpResponse(Stream):
+# Base class
+
+class Response(Stream):
 
     def __init__(self, body=b'', *, status=200, headers=[], **kwargs):
         super().__init__(body)
@@ -12,15 +14,33 @@ class HttpResponse(Stream):
         self.headers = Headers(headers, **kwargs)
 
 
-class HttpResponseRedirect(HttpResponse):
+# Subclasses
 
-    def __init__(self, to, *, status=304, **kwargs):
+class HtmlResponse(Response):
+
+    def __init__(self, body='', **kwargs):
+        super().__init__(body.encode(), **kwargs)
+        self.headers.setdefault('Content-Type', 'text/html; charset=UTF-8')
+
+
+class JsonResponse(Response):
+
+    def __init__(self, body={}, **kwargs):
+        super().__init__(json.dumps(body).encode(), **kwargs)
+        self.headers.setdefault('Content-Type', (
+            'application/json; charset=UTF-8'
+        ))
+
+
+class RedirectResponse(Response):
+
+    def __init__(self, location, *, status=304, **kwargs):
         super().__init__(status=status, **kwargs)
-        self.headers['Location'] = to
+        self.headers['Location'] = location
 
 
-class JsonResponse(HttpResponse):
+class TextResponse(Response):
 
-    def __init__(self, body, **kwargs):
-        super().__init__(json.dumps(body), **kwargs)
-        self.headers.setdefault('Content-Type', 'application/json')
+    def __init__(self, body='', **kwargs):
+        super().__init__(body.encode(), **kwargs)
+        self.headers.setdefault('Content-Type', 'text/plain; charset=UTF-8')

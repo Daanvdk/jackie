@@ -10,8 +10,6 @@ async def iterable_to_async_iterable(iterable):
 class Stream:
 
     def __init__(self, chunks=b''):
-        if isinstance(chunks, str):
-            chunks = chunks.encode()
         if isinstance(chunks, bytes):
             chunks = [chunks]
         if not hasattr(chunks, '__aiter__'):

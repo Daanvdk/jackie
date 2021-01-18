@@ -4,8 +4,8 @@ import urllib.parse
 from asgiref.compatibility import guarantee_single_callable
 
 from .exceptions import Disconnect
-from .request import HttpRequest
-from .response import HttpResponse
+from .request import Request
+from .response import Response
 
 
 # Jack to ASGI
@@ -30,7 +30,7 @@ class JackToAsgi:
 
     async def __call__(self, scope, receive, send):
         if scope['type'] == 'http':
-            request = HttpRequest(
+            request = Request(
                 method=scope['method'],
                 path=scope['path'],
                 query=urllib.parse.parse_qsl(scope['querystring']),
@@ -128,7 +128,7 @@ class AsgiToJack:
         message = await output_queue.get()
         if message['type'] != 'http.response.start':
             raise ValueError(f'unexpected message type: {message["type"]}')
-        return HttpResponse(
+        return Response(
             status=message['status'],
             headers=message.get('headers', []),
             body=get_response_body(output_queue.get),

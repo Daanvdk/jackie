@@ -38,15 +38,6 @@ async def test_bytes_to_chunks():
 
 
 @pytest.mark.asyncio
-async def test_str_to_chunks():
-    stream = Stream('foobar')
-    chunks = []
-    async for chunk in stream.chunks():
-        chunks.append(chunk)
-    assert chunks == [b'foobar']
-
-
-@pytest.mark.asyncio
 async def test_async_chunks_to_body():
     async def async_chunks():
         yield b'foo'
@@ -74,13 +65,6 @@ async def test_bytes_to_body():
 
 
 @pytest.mark.asyncio
-async def test_str_to_body():
-    stream = Stream('foobar')
-    body = await stream.body()
-    assert body == b'foobar'
-
-
-@pytest.mark.asyncio
 async def test_async_chunks_to_text():
     async def async_chunks():
         yield b'foo'
@@ -103,13 +87,6 @@ async def test_chunks_to_text():
 @pytest.mark.asyncio
 async def test_bytes_to_text():
     stream = Stream(b'foobar')
-    text = await stream.text()
-    assert text == 'foobar'
-
-
-@pytest.mark.asyncio
-async def test_str_to_text():
-    stream = Stream('foobar')
     text = await stream.text()
     assert text == 'foobar'
 
@@ -143,13 +120,6 @@ async def test_chunks_to_json():
 @pytest.mark.asyncio
 async def test_bytes_to_json():
     stream = Stream(b'{"foo": "bar"}')
-    data = await stream.json()
-    assert data == {'foo': 'bar'}
-
-
-@pytest.mark.asyncio
-async def test_str_to_json():
-    stream = Stream('{"foo": "bar"}')
     data = await stream.json()
     assert data == {'foo': 'bar'}
 
