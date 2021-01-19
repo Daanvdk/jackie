@@ -136,7 +136,7 @@ async def test_stream_multiple_chunks():
     assert chunk1 == b'foo'
     assert chunk2 == b'foo'
 
-    chunk1 = asyncio.create_task(chunks1.__anext__())
+    chunk1 = asyncio.ensure_future(chunks1.__anext__())
     chunk2 = await chunks2.__anext__()
     chunk1 = await chunk1
 

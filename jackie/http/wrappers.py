@@ -119,10 +119,10 @@ class AsgiToJackie:
             ],
             'params': params,
         }
-        asyncio.create_task(
+        asyncio.ensure_future(
             self.app(scope, input_queue.get, output_queue.put)
         )
-        asyncio.create_task(
+        asyncio.ensure_future(
             send_request_body(request.chunks(), input_queue.put)
         )
         message = await output_queue.get()

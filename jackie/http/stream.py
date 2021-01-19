@@ -23,7 +23,7 @@ class Stream:
             if index < len(self._cache):
                 task = self._cache[index]
             else:
-                task = asyncio.create_task(self._chunks.__anext__())
+                task = asyncio.ensure_future(self._chunks.__anext__())
                 self._cache.append(task)
             try:
                 yield await task

@@ -42,7 +42,7 @@ async def test_jack_to_asgi():
         'querystring': '',
         'headers': [],
     }
-    task = asyncio.create_task(app(scope, input_queue.get, output_queue.put))
+    task = asyncio.ensure_future(app(scope, input_queue.get, output_queue.put))
 
     message = await output_queue.get()
     assert message['type'] == 'http.response.start'
@@ -68,7 +68,7 @@ async def test_jack_to_asgi():
         'querystring': 'name=Jack',
         'headers': [],
     }
-    task = asyncio.create_task(app(scope, input_queue.get, output_queue.put))
+    task = asyncio.ensure_future(app(scope, input_queue.get, output_queue.put))
 
     message = await output_queue.get()
     assert message['type'] == 'http.response.start'
