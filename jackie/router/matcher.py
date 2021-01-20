@@ -70,7 +70,7 @@ class Matcher:
                 params[name] = parse(match.group())
                 index = match.end()
 
-            else:
+            else:  # pragma: no cover
                 raise ValueError(f'invalid part: {part[0]}')
 
         if index != len(path):
@@ -91,7 +91,7 @@ class Matcher:
                 param_re, parse, serialize = PARAM_TYPES[param_type]
                 parts.append(serialize(params[name]))
 
-            else:
+            else:  # pragma: no cover
                 raise ValueError(f'invalid part: {part[0]}')
 
         return ''.join(parts)

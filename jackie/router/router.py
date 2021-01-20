@@ -1,5 +1,7 @@
 from ..http import TextResponse
-from ..http.wrappers import jackie_to_asgi, AsgiToJackie, JackieToAsgi
+from ..http.wrappers import (
+    asgi_to_jackie, jackie_to_asgi, AsgiToJackie, JackieToAsgi,
+)
 from .matcher import Matcher
 
 
@@ -15,6 +17,14 @@ async def method_not_allowed(request, methods):
     )
 
 
+@asgi_to_jackie
+async def websocket_not_found(scope, receive, send):
+    message = await receive()
+    if message['type'] != 'websocket.connect':
+        raise ValueError(f'unexpected message: {message["type"]}')
+    await send({'type': 'websocket.close'})
+
+
 class Router(JackieToAsgi):
 
     def __init__(self):
@@ -22,6 +32,7 @@ class Router(JackieToAsgi):
         self._routes = []
         self._not_found = not_found
         self._method_not_allowed = method_not_allowed
+        self._websocket_not_found = websocket_not_found
 
     # Configuration
 
@@ -107,7 +118,10 @@ class Router(JackieToAsgi):
             if method in allowed_methods:
                 break
         else:
-            if allowed_methods:
+            if method == 'WEBSOCKET':
+                view = self._websocket_not_found
+                params = {}
+            elif allowed_methods:
                 view = self._method_not_allowed
                 params = {'methods': allowed_methods}
             else:

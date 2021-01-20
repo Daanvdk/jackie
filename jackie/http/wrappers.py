@@ -87,7 +87,7 @@ async def send_request_body(chunks, send):
         await send({'type': 'http.disconnect'})
 
 
-async def get_response_body(receive):
+async def get_response_body(receive, cleanup):
     while True:
         message = await receive()
         if message['type'] == 'http.response.body':
@@ -96,6 +96,8 @@ async def get_response_body(receive):
                 break
         else:
             raise ValueError(f'unexpected message type: {message["type"]}')
+    for task in cleanup:
+        task.cancel()
 
 
 class AsgiToJackie:
@@ -106,6 +108,23 @@ class AsgiToJackie:
     async def __call__(self, request, **params):
         input_queue = asyncio.Queue()
         output_queue = asyncio.Queue()
+
+        body_task = asyncio.ensure_future(
+            send_request_body(request.chunks(), input_queue.put)
+        )
+
+        async def receive():
+            message_task = asyncio.ensure_future(input_queue.get())
+            await asyncio.wait(
+                [body_task, message_task],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            try:
+                return message_task.result()
+            except asyncio.InvalidStateError:
+                message_task.cancel()
+                raise ValueError('no more messages') from None
+
         scope = {
             'type': 'http',
             'method': request.method,
@@ -119,19 +138,33 @@ class AsgiToJackie:
             ],
             'params': params,
         }
-        asyncio.ensure_future(
-            self.app(scope, input_queue.get, output_queue.put)
+        app_task = asyncio.ensure_future(
+            self.app(scope, receive, output_queue.put)
         )
-        asyncio.ensure_future(
-            send_request_body(request.chunks(), input_queue.put)
-        )
-        message = await output_queue.get()
+
+        async def receive():
+            message_task = asyncio.ensure_future(output_queue.get())
+            await asyncio.wait(
+                [app_task, message_task],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            try:
+                return message_task.result()
+            except asyncio.InvalidStateError:
+                message_task.cancel()
+                app_exception = app_task.exception()
+                if app_exception:
+                    raise app_exception from None
+                else:
+                    raise ValueError('expected more messages') from None
+
+        message = await receive()
         if message['type'] != 'http.response.start':
             raise ValueError(f'unexpected message type: {message["type"]}')
         return Response(
             status=message['status'],
             headers=message.get('headers', []),
-            body=get_response_body(output_queue.get),
+            body=get_response_body(receive, [body_task, app_task]),
         )
 
 
