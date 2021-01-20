@@ -407,3 +407,47 @@ async def test_websocket_route():
     await input_queue.put({'type': 'websocket.send', 'text': 'too soon'})
     with pytest.raises(ValueError):
         await task
+
+
+@pytest.mark.asyncio
+async def test_middleware():
+    router = Router()
+
+    @router.get('/foo/')
+    async def foo(request):
+        return TextResponse('foo')
+
+    @router.get('/foo/<param>/')
+    async def bar(request, param):
+        return TextResponse(param)
+
+    @router.middleware
+    def prefix_content(get_response):
+        async def view(request):
+            response = await get_response(request)
+            try:
+                prefix = request.query['prefix']
+            except KeyError:
+                pass
+            else:
+                response = TextResponse(prefix + await response.text())
+            return response
+        return view
+
+    view = asgi_to_jackie(router)
+
+    response = await view(Request('/foo/'))
+    assert response.status == 200
+    assert await response.text() == 'foo'
+
+    response = await view(Request('/foo/', query={'prefix': 'prefixed '}))
+    assert response.status == 200
+    assert await response.text() == 'prefixed foo'
+
+    response = await view(Request('/foo/bar/'))
+    assert response.status == 200
+    assert await response.text() == 'bar'
+
+    response = await view(Request('/foo/bar/', query={'prefix': 'prefixed '}))
+    assert response.status == 200
+    assert await response.text() == 'prefixed bar'

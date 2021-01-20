@@ -54,6 +54,7 @@ class Router(JackieToAsgi):
         self._not_found = not_found
         self._method_not_allowed = method_not_allowed
         self._websocket_not_found = websocket_not_found
+        self._middlewares = []
 
     # Configuration
 
@@ -78,11 +79,15 @@ class Router(JackieToAsgi):
 
     def not_found(self, view):
         self._not_found = view
-        return self
+        return view
 
     def method_not_allowed(self, view):
         self._method_not_allowed = view
-        return self
+        return view
+
+    def middleware(self, middleware):
+        self._middlewares.append(middleware)
+        return middleware
 
     # Method shorthands
 
@@ -149,7 +154,10 @@ class Router(JackieToAsgi):
                 view = self._not_found
                 params = {}
 
-        return ResolvedView(view, params)
+        view = ResolvedView(view, params)
+        for middleware in reversed(self._middlewares):
+            view = middleware(view)
+        return view
 
     async def __call__(self, scope, receive, send):
         if scope['type'] == 'http':
