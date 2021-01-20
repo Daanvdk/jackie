@@ -158,7 +158,7 @@ async def test_user():
 @pytest.mark.asyncio
 async def test_custom_error_pages():
     router = Router()
-    
+
     @router.get('/api/')
     async def foo(request):
         return JsonResponse({'foo': 'bar'})
@@ -349,14 +349,32 @@ async def test_websocket_route():
         'type': 'websocket',
         'path': '/',
     }
-    task = asyncio.ensure_future(router(scope, input_queue.get, output_queue.put))
+    task = asyncio.ensure_future(
+        router(scope, input_queue.get, output_queue.put)
+    )
 
-    await input_queue.put({'type': 'websocket.connect'})
-    assert await output_queue.get() == {'type': 'websocket.accept'}
-    await input_queue.put({'type': 'websocket.receive', 'text': 'foo'})
-    assert await output_queue.get() == {'type': 'websocket.send', 'text': 'foo'}
-    await input_queue.put({'type': 'websocket.receive', 'bytes': b'foo'})
-    assert await output_queue.get() == {'type': 'websocket.send', 'bytes': b'foo'}
+    await input_queue.put({
+        'type': 'websocket.connect',
+    })
+    assert await output_queue.get() == {
+        'type': 'websocket.accept',
+    }
+    await input_queue.put({
+        'type': 'websocket.receive',
+        'text': 'foo',
+    })
+    assert await output_queue.get() == {
+        'type': 'websocket.send',
+        'text': 'foo',
+    }
+    await input_queue.put({
+        'type': 'websocket.receive',
+        'bytes': b'foo',
+    })
+    assert await output_queue.get() == {
+        'type': 'websocket.send',
+        'bytes': b'foo',
+    }
     await input_queue.put({'type': 'websocket.disconnect'})
     await task
 
@@ -367,7 +385,9 @@ async def test_websocket_route():
         'type': 'websocket',
         'path': '/foo',
     }
-    task = asyncio.ensure_future(router(scope, input_queue.get, output_queue.put))
+    task = asyncio.ensure_future(
+        router(scope, input_queue.get, output_queue.put)
+    )
 
     await input_queue.put({'type': 'websocket.connect'})
     assert await output_queue.get() == {'type': 'websocket.close'}
@@ -380,7 +400,9 @@ async def test_websocket_route():
         'type': 'websocket',
         'path': '/foo',
     }
-    task = asyncio.ensure_future(router(scope, input_queue.get, output_queue.put))
+    task = asyncio.ensure_future(
+        router(scope, input_queue.get, output_queue.put)
+    )
 
     await input_queue.put({'type': 'websocket.send', 'text': 'too soon'})
     with pytest.raises(ValueError):

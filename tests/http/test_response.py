@@ -18,7 +18,9 @@ async def test_html_response():
 async def test_json_response():
     response = JsonResponse({'foo': 'bar'})
     assert response.status == 200
-    assert response.headers['Content-Type'] == 'application/json; charset=UTF-8'
+    assert response.headers['Content-Type'] == (
+        'application/json; charset=UTF-8'
+    )
     assert await response.body() == b'{"foo": "bar"}'
     assert await response.text() == '{"foo": "bar"}'
 

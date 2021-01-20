@@ -222,38 +222,7 @@ async def test_asgi_to_jackie_disconnect():
         yield b'foo'
         raise Disconnect
 
-    task = asyncio.ensure_future(view(Request(body=get_request_body())))
-    await task
-
-
-@pytest.mark.asyncio
-async def test_asgi_to_jackie_disconnect():
-    @asgi_to_jackie
-    async def view(scope, receive, send):
-        assert scope['type'] == 'http'
-        assert await receive() == {
-            'type': 'http.request',
-            'body': b'foo',
-            'more_body': True,
-        }
-        assert await receive() == {
-            'type': 'http.disconnect',
-        }
-        await send({
-            'type': 'http.response.start',
-            'status': 200,
-        })
-        await send({
-            'type': 'http.response.body',
-            'body': b'foo',
-        })
-
-    async def get_request_body():
-        yield b'foo'
-        raise Disconnect
-
-    task = asyncio.ensure_future(view(Request(body=get_request_body())))
-    await task
+    await view(Request(body=get_request_body()))
 
 
 @pytest.mark.asyncio
