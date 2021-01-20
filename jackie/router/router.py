@@ -25,6 +25,27 @@ async def websocket_not_found(scope, receive, send):
     await send({'type': 'websocket.close'})
 
 
+class ResolvedView(AsgiToJackie):
+
+    def __init__(self, view, params):
+        super().__init__(ResolvedApp(self))
+        self.view = view
+        self.params = params
+
+    async def __call__(self, request, **params):
+        params.update(self.params)
+        return await self.view(request, **params)
+
+
+class ResolvedApp(JackieToAsgi):
+
+    async def __call__(self, scope, receive, send):
+        params = {**scope.get('params', {}), **self.view.params}
+        scope = {**scope, 'params': params}
+        app = jackie_to_asgi(self.view.view)
+        return await app(scope, receive, send)
+
+
 class Router(JackieToAsgi):
 
     def __init__(self):
@@ -106,7 +127,7 @@ class Router(JackieToAsgi):
             else:
                 yield methods, matcher, view
 
-    def _resolve(self, method, path):
+    def _get_view(self, method, path):
         allowed_methods = set()
 
         for methods, matcher, view in self._flat_routes():
@@ -128,7 +149,7 @@ class Router(JackieToAsgi):
                 view = self._not_found
                 params = {}
 
-        return view, params
+        return ResolvedView(view, params)
 
     async def __call__(self, scope, receive, send):
         if scope['type'] == 'http':
@@ -137,22 +158,12 @@ class Router(JackieToAsgi):
             method = 'WEBSOCKET'
         else:
             raise ValueError(f'unsupported scope type: {scope["type"]}')
-        view, params = self._resolve(method, scope['path'])
-        try:
-            params = {**scope['params'], **params}
-        except KeyError:
-            pass
-        scope = {**scope, 'params': params}
-        app = jackie_to_asgi(view)
+        app = jackie_to_asgi(self._get_view(method, scope['path']))
         return await app(scope, receive, send)
 
 
 class JackieRouter(AsgiToJackie):
 
-    def __init__(self, app):
-        super().__init__(app)
-
     async def __call__(self, request, **params):
-        view, subparams = self.app._resolve(request.method, request.path)
-        params = {**params, **subparams}
+        view = self.app._get_view(request.method, request.path)
         return await view(request, **params)
