@@ -2,19 +2,19 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="24" height="24" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
     <path fill="transparent" stroke="#202830" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="
-        M 16,31
-        L 31,22
-        L 24,1
-        L 16,17
-        L 8,1
-        L 1,22
+        M 16,30
+        L 31,22.5
+        L 24,1.5
+        L 16,17.5
+        L 8,1.5
+        L 1,22.5
         Z
-        M 16,31
-        L 26.5,9.5
-        L 5.5,9.5
+        M 1,22.5
+        L 16,17.5
+        L 31,22.5
+        M 16,30
+        L 26.5,9
+        L 5.5,9
         Z
-        M 1,22
-        L 16,17 
-        L 31,22
     " />
 </svg>
