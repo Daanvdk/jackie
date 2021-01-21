@@ -29,6 +29,9 @@ class ResolvedView(AsgiToJackie):
 
     def __init__(self, view, params):
         super().__init__(ResolvedApp(self))
+        if isinstance(view, ResolvedView):
+            params = {**params, **view.params}
+            view = view.view
         self.view = view
         self.params = params
 
@@ -46,14 +49,20 @@ class ResolvedApp(JackieToAsgi):
         return await app(scope, receive, send)
 
 
+class NoView(Exception):
+
+    def __init__(self, allowed_methods):
+        self.allowed_methods = allowed_methods
+
+
 class Router(JackieToAsgi):
 
     def __init__(self):
         super().__init__(JackieRouter(self))
         self._routes = []
-        self._not_found = not_found
-        self._method_not_allowed = method_not_allowed
-        self._websocket_not_found = websocket_not_found
+        self._not_found = None
+        self._method_not_allowed = None
+        self._websocket_not_found = None
         self._middlewares = []
 
     # Configuration
@@ -123,36 +132,51 @@ class Router(JackieToAsgi):
 
     # Application
 
-    def _flat_routes(self, *, prefix=None):
-        for methods, matcher, view in self._routes:
-            if prefix is not None:
-                matcher = prefix + matcher
-            if methods is None:
-                yield from view._flat_routes(prefix=matcher)
-            else:
-                yield methods, matcher, view
-
-    def _get_view(self, method, path):
+    def _get_view(self, method, path, *, root=True, base_params={}):
         allowed_methods = set()
 
-        for methods, matcher, view in self._flat_routes():
-            try:
-                params = matcher.match(path)
-            except Matcher.Error:
-                continue
+        for methods, matcher, view in self._routes:
+            if methods is None:
+                try:
+                    params, path = matcher.match(path)
+                except Matcher.Error:
+                    continue
+                try:
+                    view = view._get_view(
+                        method, path,
+                        root=False, base_params={**base_params, **params},
+                    )
+                except NoView as no_view:
+                    methods = no_view.allowed_methods
+                else:
+                    break
+            else:
+                try:
+                    params = matcher.fullmatch(path)
+                except Matcher.Error:
+                    continue
+                if method in methods:
+                    break
             allowed_methods.update(methods)
-            if method in allowed_methods:
-                break
         else:
             if method == 'WEBSOCKET':
                 view = self._websocket_not_found
-                params = {}
+                params = {**base_params}
+                if view is None and root:
+                    view = websocket_not_found
             elif allowed_methods:
                 view = self._method_not_allowed
-                params = {'methods': allowed_methods}
+                params = {**base_params, 'methods': allowed_methods}
+                if view is None and root:
+                    view = method_not_allowed
             else:
                 view = self._not_found
-                params = {}
+                params = {**base_params}
+                if view is None and root:
+                    view = not_found
+
+        if view is None:
+            raise NoView(allowed_methods)
 
         view = ResolvedView(view, params)
         for middleware in reversed(self._middlewares):

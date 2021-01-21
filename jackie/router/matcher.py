@@ -58,13 +58,19 @@ class Matcher:
         return merged
 
     def match(self, path):
-        match = self.regex.fullmatch(path)
+        match = self.regex.match(path)
         if match is None:
             raise self.Error
         params = {}
         for (name, param_type), value in zip(self.params, match.groups()):
             _, parse, _ = PARAM_TYPES[param_type]
             params[name] = parse(value)
+        return params, path[match.end():]
+
+    def fullmatch(self, path):
+        params, path = self.match(path)
+        if path:
+            raise self.Error
         return params
 
     def reverse(self, **params):

@@ -6,11 +6,11 @@ from jackie.router.matcher import Matcher
 def test_match_fixed():
     matcher = Matcher('foobar')
 
-    assert matcher.match('foobar') == {}
+    assert matcher.fullmatch('foobar') == {}
     with pytest.raises(Matcher.Error):
-        matcher.match('foo')
+        matcher.fullmatch('foo')
     with pytest.raises(Matcher.Error):
-        matcher.match('foobarbaz')
+        matcher.fullmatch('foobarbaz')
 
     matcher.reverse()
 
@@ -18,12 +18,12 @@ def test_match_fixed():
 def test_match_param():
     matcher = Matcher('foo/<key>/baz')
 
-    assert matcher.match('foo/bar/baz') == {'key': 'bar'}
-    assert matcher.match('foo/123/baz') == {'key': '123'}
+    assert matcher.fullmatch('foo/bar/baz') == {'key': 'bar'}
+    assert matcher.fullmatch('foo/123/baz') == {'key': '123'}
     with pytest.raises(Matcher.Error):
-        matcher.match('foo/baz')
+        matcher.fullmatch('foo/baz')
     with pytest.raises(Matcher.Error):
-        matcher.match('foo/bar/123/baz')
+        matcher.fullmatch('foo/bar/123/baz')
 
     assert matcher.reverse(key='bar') == 'foo/bar/baz'
     assert matcher.reverse(key='123') == 'foo/123/baz'
@@ -34,13 +34,13 @@ def test_match_param():
 def test_int_param():
     matcher = Matcher('foo/<key:int>/baz')
 
-    assert matcher.match('foo/123/baz') == {'key': 123}
+    assert matcher.fullmatch('foo/123/baz') == {'key': 123}
     with pytest.raises(Matcher.Error):
-        matcher.match('foo/bar/baz')
+        matcher.fullmatch('foo/bar/baz')
     with pytest.raises(Matcher.Error):
-        matcher.match('foo/baz')
+        matcher.fullmatch('foo/baz')
     with pytest.raises(Matcher.Error):
-        matcher.match('foo/bar/123/baz')
+        matcher.fullmatch('foo/bar/123/baz')
 
     assert matcher.reverse(key=123) == 'foo/123/baz'
     with pytest.raises(KeyError):
@@ -55,11 +55,11 @@ def test_invalid_param_type():
 def test_add_matchers():
     matcher = Matcher('foo') + Matcher('bar')
 
-    assert matcher.match('foobar') == {}
+    assert matcher.fullmatch('foobar') == {}
     with pytest.raises(Matcher.Error):
-        assert matcher.match('foo')
+        assert matcher.fullmatch('foo')
     with pytest.raises(Matcher.Error):
-        assert matcher.match('bar')
+        assert matcher.fullmatch('bar')
 
     with pytest.raises(TypeError):
         matcher = Matcher('foo') + 'bar'
