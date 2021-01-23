@@ -1,2 +1,4 @@
 class Disconnect(Exception):
-    pass
+    
+    def __init__(self, code=None):
+        self.code = code

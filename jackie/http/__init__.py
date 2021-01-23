@@ -2,6 +2,7 @@ from .request import JsonRequest, Request, TextRequest
 from .response import (
     HtmlResponse, JsonResponse, RedirectResponse, Response, TextResponse,
 )
+from .socket import Socket
 from .wrappers import asgi_to_jackie, jackie_to_asgi
 
 
@@ -14,6 +15,7 @@ __all__ = [
     'RedirectResponse',
     'Request',
     'Response',
+    'Socket',
     'TextRequest',
     'TextResponse',
 ]

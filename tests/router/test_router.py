@@ -4,6 +4,7 @@ import pytest
 
 from jackie.router import Router
 from jackie.http import asgi_to_jackie, JsonResponse, Request, TextResponse
+from jackie.http.exceptions import Disconnect
 
 
 app = Router()
@@ -330,17 +331,14 @@ async def test_websocket_route():
     router = Router()
 
     @router.websocket('/')
-    @asgi_to_jackie
-    async def echo(scope, receive, send):
-        assert scope['type'] == 'websocket'
-        assert await receive() == {'type': 'websocket.connect'}
-        await send({'type': 'websocket.accept'})
+    async def echo(socket):
+        await socket.accept()
         while True:
-            message = await receive()
-            if message['type'] == 'websocket.disconnect':
+            try:
+                message = await socket.receive_bytes()
+            except Disconnect:
                 break
-            assert message['type'] == 'websocket.receive'
-            await send({**message, 'type': 'websocket.send'})
+            await socket.send_bytes(message)
 
     input_queue = asyncio.Queue()
     output_queue = asyncio.Queue()
@@ -348,6 +346,8 @@ async def test_websocket_route():
     scope = {
         'type': 'websocket',
         'path': '/',
+        'querystring': '',
+        'headers': [],
     }
     task = asyncio.ensure_future(
         router(scope, input_queue.get, output_queue.put)
@@ -358,6 +358,7 @@ async def test_websocket_route():
     })
     assert await output_queue.get() == {
         'type': 'websocket.accept',
+        'headers': [],
     }
     await input_queue.put({
         'type': 'websocket.receive',
@@ -365,7 +366,8 @@ async def test_websocket_route():
     })
     assert await output_queue.get() == {
         'type': 'websocket.send',
-        'text': 'foo',
+        'bytes': b'foo',
+        'text': None,
     }
     await input_queue.put({
         'type': 'websocket.receive',
@@ -374,6 +376,7 @@ async def test_websocket_route():
     assert await output_queue.get() == {
         'type': 'websocket.send',
         'bytes': b'foo',
+        'text': None,
     }
     await input_queue.put({'type': 'websocket.disconnect'})
     await task
@@ -384,13 +387,18 @@ async def test_websocket_route():
     scope = {
         'type': 'websocket',
         'path': '/foo',
+        'querystring': '',
+        'headers': [],
     }
     task = asyncio.ensure_future(
         router(scope, input_queue.get, output_queue.put)
     )
 
     await input_queue.put({'type': 'websocket.connect'})
-    assert await output_queue.get() == {'type': 'websocket.close'}
+    assert await output_queue.get() == {
+        'type': 'websocket.close',
+        'code': 1000,
+    }
     await task
 
     input_queue = asyncio.Queue()
@@ -399,6 +407,8 @@ async def test_websocket_route():
     scope = {
         'type': 'websocket',
         'path': '/foo',
+        'querystring': '',
+        'headers': [],
     }
     task = asyncio.ensure_future(
         router(scope, input_queue.get, output_queue.put)

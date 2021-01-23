@@ -44,8 +44,6 @@ class Matcher:
         if index != len(pattern):
             parts.append(re.escape(pattern[index:]))
 
-        print('PATTERN', repr(pattern), repr(r''.join(parts)))
-
         self.regex = re.compile(r''.join(parts))
         self.params = params
 

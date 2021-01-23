@@ -1,7 +1,5 @@
 from ..http import TextResponse
-from ..http.wrappers import (
-    asgi_to_jackie, jackie_to_asgi, AsgiToJackie, JackieToAsgi,
-)
+from ..http.wrappers import jackie_to_asgi, AsgiToJackie, JackieToAsgi
 from .matcher import Matcher
 
 
@@ -17,12 +15,8 @@ async def method_not_allowed(request, methods):
     )
 
 
-@asgi_to_jackie
-async def websocket_not_found(scope, receive, send):
-    message = await receive()
-    if message['type'] != 'websocket.connect':
-        raise ValueError(f'unexpected message: {message["type"]}')
-    await send({'type': 'websocket.close'})
+async def websocket_not_found(socket):
+    await socket.close()
 
 
 class ResolvedView(AsgiToJackie):

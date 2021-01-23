@@ -3,9 +3,12 @@ import urllib.parse
 
 from asgiref.compatibility import guarantee_single_callable
 
+from ..multidict import Headers
+
 from .exceptions import Disconnect
 from .request import Request
 from .response import Response
+from .socket import Socket
 
 
 # Jackie to ASGI
@@ -18,7 +21,7 @@ async def get_request_body(receive):
             if not message.get('more_body', False):
                 break
         elif message['type'] == 'http.disconnect':
-            raise Disconnect
+            raise Disconnect()
         else:
             raise ValueError(f'unexpected message type: {message["type"]}')
 
@@ -62,7 +65,80 @@ class JackieToAsgi:
                 pass
 
         elif scope['type'] == 'websocket':
-            raise NotImplementedError
+            message = await receive()
+            if message['type'] != 'websocket.connect':
+                raise ValueError(f'unexpected message: {message["type"]}')
+
+            state = 'handshake'
+
+            async def accept(headers=[], **kwargs):
+                nonlocal state
+                if state != 'handshake':
+                    raise ValueError(
+                        'can only accept connection during handshake'
+                    )
+                state = 'open'
+                headers = Headers(headers, **kwargs)
+                await send({
+                    'type': 'websocket.accept',
+                    'headers': [
+                        (key.encode(), value.encode())
+                        for key, value in headers.allitems()
+                    ],
+                })
+
+            async def close(code=1000):
+                nonlocal state
+                if state == 'closed':
+                    raise ValueError('connection already closed')
+                state = 'closed'
+                await send({'type': 'websocket.close', 'code': code})
+
+            async def receive_message():
+                nonlocal state
+                if state != 'open':
+                    raise ValueError('connection is not open')
+                message = await receive()
+                if message['type'] == 'websocket.receive':
+                    return message.get('text') or message.get('bytes')
+                elif message['type'] == 'websocket.disconnect':
+                    raise Disconnect(message.get('code', 1000))
+                else:
+                    raise ValueError(f'unexpected type: {message["type"]}')
+
+            async def send_message(message):
+                nonlocal state
+                if state != 'open':
+                    raise ValueError('connection is not open')
+                if isinstance(message, str):
+                    message = {
+                        'type': 'websocket.send',
+                        'text': message,
+                        'bytes': None,
+                    }
+                elif isinstance(message, bytes):
+                    message = {
+                        'type': 'websocket.send',
+                        'text': None,
+                        'bytes': message,
+                    }
+                else:
+                    raise TypeError(
+                        'message must be either str or bytes, not '
+                        f'{message.__class__.__name__}'
+                    )
+                await send(message)
+
+            socket = Socket(
+                path=scope['path'],
+                query=urllib.parse.parse_qsl(scope['querystring']),
+                headers=scope['headers'],
+                accept=accept,
+                close=close,
+                receive=receive_message,
+                send=send_message,
+            )
+            return await self.view(socket)
 
         else:
             raise ValueError(f'unsupported scope type: {scope["type"]}')
@@ -106,66 +182,135 @@ class AsgiToJackie:
         self.app = guarantee_single_callable(app)
 
     async def __call__(self, request, **params):
-        input_queue = asyncio.Queue()
-        output_queue = asyncio.Queue()
+        if isinstance(request, Request):
+            input_queue = asyncio.Queue()
+            output_queue = asyncio.Queue()
 
-        body_task = asyncio.ensure_future(
-            send_request_body(request.chunks(), input_queue.put)
-        )
-
-        async def receive():
-            message_task = asyncio.ensure_future(input_queue.get())
-            await asyncio.wait(
-                [body_task, message_task],
-                return_when=asyncio.FIRST_COMPLETED,
+            body_task = asyncio.ensure_future(
+                send_request_body(request.chunks(), input_queue.put)
             )
-            try:
-                return message_task.result()
-            except asyncio.InvalidStateError:
-                message_task.cancel()
-                raise ValueError('no more messages') from None
 
-        scope = {
-            'type': 'http',
-            'method': request.method,
-            'path': request.path,
-            'querystring': urllib.parse.urlencode(
-                list(request.query.allitems())
-            ),
-            'headers': [
-                (key.encode(), value.encode())
-                for key, value in request.headers.allitems()
-            ],
-            'params': params,
-        }
-        app_task = asyncio.ensure_future(
-            self.app(scope, receive, output_queue.put)
-        )
+            async def receive():
+                message_task = asyncio.ensure_future(input_queue.get())
+                await asyncio.wait(
+                    [body_task, message_task],
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                try:
+                    return message_task.result()
+                except asyncio.InvalidStateError:
+                    message_task.cancel()
+                    raise ValueError('no more messages') from None
 
-        async def receive():
-            message_task = asyncio.ensure_future(output_queue.get())
-            await asyncio.wait(
-                [app_task, message_task],
-                return_when=asyncio.FIRST_COMPLETED,
+            scope = {
+                'type': 'http',
+                'method': request.method,
+                'path': request.path,
+                'querystring': urllib.parse.urlencode(
+                    list(request.query.allitems())
+                ),
+                'headers': [
+                    (key.encode(), value.encode())
+                    for key, value in request.headers.allitems()
+                ],
+                'params': params,
+            }
+            app_task = asyncio.ensure_future(
+                self.app(scope, receive, output_queue.put)
             )
-            try:
-                return message_task.result()
-            except asyncio.InvalidStateError:
-                message_task.cancel()
-                app_exception = app_task.exception()
-                if app_exception:
-                    raise app_exception from None
+
+            async def receive():
+                message_task = asyncio.ensure_future(output_queue.get())
+                await asyncio.wait(
+                    [app_task, message_task],
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                try:
+                    return message_task.result()
+                except asyncio.InvalidStateError:
+                    message_task.cancel()
+                    app_exception = app_task.exception()
+                    if app_exception:
+                        raise app_exception from None
+                    else:
+                        raise ValueError('expected more messages') from None
+
+            message = await receive()
+            if message['type'] != 'http.response.start':
+                raise ValueError(f'unexpected message type: {message["type"]}')
+            return Response(
+                status=message['status'],
+                headers=message.get('headers', []),
+                body=get_response_body(receive, [body_task, app_task]),
+            )
+
+        elif isinstance(request, Socket):
+            scope = {
+                'type': 'websocket',
+                'path': request.path,
+                'querystring': urllib.parse.urlencode(
+                    list(request.query.allitems())
+                ),
+                'headers': [
+                    (key.encode(), value.encode())
+                    for key, value in request.headers.allitems()
+                ],
+                'params': params,
+            }
+
+            first = True
+
+            async def receive():
+                nonlocal first
+                if first:
+                    first = False
+                    return {'type': 'websocket.connect'}
+                try:
+                    message = await request._receive()
+                except Disconnect as e:
+                    return {'type': 'websocket.close', 'code': e.code}
+                if isinstance(message, str):
+                    return {
+                        'type': 'websocket.receive',
+                        'bytes': None,
+                        'text': message,
+                    }
+                elif isinstance(message, bytes):
+                    return {
+                        'type': 'websocket.receive',
+                        'bytes': message,
+                        'text': None,
+                    }
                 else:
-                    raise ValueError('expected more messages') from None
+                    raise ValueError(
+                        'message must be either str or bytes, not '
+                        f'{message.__class__.__name__}'
+                    )
 
-        message = await receive()
-        if message['type'] != 'http.response.start':
-            raise ValueError(f'unexpected message type: {message["type"]}')
-        return Response(
-            status=message['status'],
-            headers=message.get('headers', []),
-            body=get_response_body(receive, [body_task, app_task]),
-        )
+            async def send(message):
+                if message['type'] == 'websocket.accept':
+                    await request.accept(headers=message.get('headers', []))
+                elif message['type'] == 'websocket.close':
+                    await request.close(code=message.get('code', 1000))
+                elif message['type'] == 'websocket.send':
+                    if message.get('text'):
+                        await request.send_text(message['text'])
+                    elif message.get('bytes'):
+                        await request.send_bytes(message['bytes'])
+                    else:
+                        raise ValueError('send without content')
+                else:
+                    raise ValueError(
+                        f'unexpected message type: {message["type"]}'
+                    )
+
+            return await self.app(scope, receive, send)
+
+        else:
+            raise TypeError(
+                'request must be Request or Socket, not '
+                f'{request.__class__.__name__}'
+            )
 
 
 # Decorators
