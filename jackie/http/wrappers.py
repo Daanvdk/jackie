@@ -40,8 +40,18 @@ class JackieToAsgi:
                 headers=scope['headers'],
                 body=get_request_body(receive),
             )
+
             try:
-                response = await self.view(request, **scope.get('params', {}))
+                router_info = scope['jackie.router']
+            except KeyError:
+                params = {}
+            else:
+                request.router = router_info['router']
+                request.view_name = router_info['name']
+                params = router_info['params']
+
+            try:
+                response = await self.view(request, **params)
                 await send({
                     'type': 'http.response.start',
                     'status': response.status,
@@ -138,7 +148,17 @@ class JackieToAsgi:
                 receive=receive_message,
                 send=send_message,
             )
-            return await self.view(socket)
+
+            try:
+                router_info = scope['jackie.router']
+            except KeyError:
+                params = {}
+            else:
+                socket.router = router_info['router']
+                socket.view_name = router_info['name']
+                params = router_info['params']
+
+            return await self.view(socket, **params)
 
         else:
             raise ValueError(f'unsupported scope type: {scope["type"]}')
@@ -213,7 +233,11 @@ class AsgiToJackie:
                     (key.encode(), value.encode())
                     for key, value in request.headers.allitems()
                 ],
-                'params': params,
+                'jackie.router': {
+                    'router': request.router,
+                    'name': request.view_name,
+                    'params': params,
+                },
             }
             app_task = asyncio.ensure_future(
                 self.app(scope, receive, output_queue.put)
@@ -255,7 +279,11 @@ class AsgiToJackie:
                     (key.encode(), value.encode())
                     for key, value in request.headers.allitems()
                 ],
-                'params': params,
+                'jackie.router': {
+                    'router': request.router,
+                    'name': request.view_name,
+                    'params': params,
+                },
             }
 
             first = True

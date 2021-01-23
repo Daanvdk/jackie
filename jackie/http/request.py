@@ -18,6 +18,9 @@ class Request(Stream):
         self.query = MultiDict(query)
         self.headers = Headers(headers, **kwargs)
 
+        self.router = None
+        self.view_name = None
+
 
 # Subclasses
 

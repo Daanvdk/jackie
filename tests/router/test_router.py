@@ -12,28 +12,28 @@ app = Router()
 
 # Post resource (full urls)
 
-@app.get('/post/')
+@app.get('/post/', name='post:list')
 async def post_list(request):
     return TextResponse('post list')
 
 
-@app.post('/post/')
+@app.post('/post/', name='post:create')
 async def post_create(request):
     return TextResponse('post create')
 
 
-@app.get('/post/<post_id:int>/')
+@app.get('/post/<post_id:int>/', name='post:detail')
 async def post_detail(request, post_id):
     return TextResponse(f'post detail {post_id}')
 
 
-@app.put('/post/<post_id:int>/')
+@app.put('/post/<post_id:int>/', name='post:update')
 @app.patch('/post/<post_id:int>/')
 async def post_update(request, post_id):
     return TextResponse(f'post update {post_id}')
 
 
-@app.delete('/post/<post_id:int>/')
+@app.delete('/post/<post_id:int>/', name='post:delete')
 async def post_delete(request, post_id):
     return TextResponse(f'post delete {post_id}')
 
@@ -43,33 +43,33 @@ async def post_delete(request, post_id):
 user_app = Router()
 
 
-@user_app.get('')
+@user_app.get('', name='list')
 async def user_list(request):
     return TextResponse('user list')
 
 
-@user_app.post('')
+@user_app.post('', name='create')
 async def user_create(request):
     return TextResponse('user create')
 
 
 # Include in the middle so we can verify that routes before and after include
 # work
-app.include('/user/', user_app)
+app.include('/user/', user_app, name='user')
 
 
-@user_app.get('<user_id:int>/')
+@user_app.get('<user_id:int>/', name='detail')
 async def user_detail(request, user_id):
     return TextResponse(f'user detail {user_id}')
 
 
-@user_app.put('<user_id:int>/')
-@user_app.patch('<user_id:int>/')
+@user_app.put('<user_id:int>/', name='update')
+@user_app.patch('<user_id:int>/', name='update')
 async def user_update(request, user_id):
     return TextResponse(f'user update {user_id}')
 
 
-@user_app.delete('<user_id:int>/')
+@user_app.delete('<user_id:int>/', name='delete')
 async def user_delete(request, user_id):
     return TextResponse(f'user delete {user_id}')
 
@@ -461,3 +461,36 @@ async def test_middleware():
     response = await view(Request('/foo/bar/', query={'prefix': 'prefixed '}))
     assert response.status == 200
     assert await response.text() == 'prefixed bar'
+
+
+def test_reverse():
+    assert app.reverse('post:list') == '/post/'
+    assert app.reverse('post:create') == '/post/'
+
+    assert app.reverse('post:detail', post_id=123) == '/post/123/'
+    with pytest.raises(KeyError):
+        app.reverse('post:detail')
+    assert app.reverse('post:update', post_id=123) == '/post/123/'
+    with pytest.raises(KeyError):
+        app.reverse('post:update')
+    assert app.reverse('post:delete', post_id=123) == '/post/123/'
+    with pytest.raises(KeyError):
+        app.reverse('post:delete')
+
+    assert app.reverse('user:list') == '/user/'
+    assert app.reverse('user:create') == '/user/'
+
+    assert app.reverse('user:detail', user_id=123) == '/user/123/'
+    with pytest.raises(KeyError):
+        app.reverse('user:detail')
+    assert app.reverse('user:update', user_id=123) == '/user/123/'
+    with pytest.raises(KeyError):
+        app.reverse('user:update')
+    assert app.reverse('user:delete', user_id=123) == '/user/123/'
+    with pytest.raises(KeyError):
+        app.reverse('user:delete')
+
+    with pytest.raises(ValueError):
+        app.reverse('unknown')
+    with pytest.raises(ValueError):
+        app.reverse('user:unknown')

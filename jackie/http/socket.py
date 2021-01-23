@@ -20,6 +20,9 @@ class Socket:
         self._receive = receive
         self._send = send
 
+        self.router = None
+        self.view_name = None
+
     async def receive_bytes(self):
         message = await self._receive()
         if isinstance(message, str):

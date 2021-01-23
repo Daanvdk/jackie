@@ -21,25 +21,28 @@ async def websocket_not_found(socket):
 
 class ResolvedView(AsgiToJackie):
 
-    def __init__(self, view, params):
+    def __init__(self, router, name, params, view):
         super().__init__(ResolvedApp(self))
-        if isinstance(view, ResolvedView):
-            params = {**params, **view.params}
-            view = view.view
-        self.view = view
+        self.router = router
+        self.name = name
         self.params = params
+        self.view = view
 
     async def __call__(self, request, **params):
-        params.update(self.params)
-        return await self.view(request, **params)
+        request.router = self.router
+        request.view_name = self.name
+        return await self.view(request, **self.params)
 
 
 class ResolvedApp(JackieToAsgi):
 
     async def __call__(self, scope, receive, send):
-        params = {**scope.get('params', {}), **self.view.params}
-        scope = {**scope, 'params': params}
         app = jackie_to_asgi(self.view.view)
+        scope = {**scope, 'jackie.router': {
+            'router': self.view.router,
+            'name': self.view.name,
+            'params': self.view.params,
+        }}
         return await app(scope, receive, send)
 
 
@@ -61,23 +64,23 @@ class Router(JackieToAsgi):
 
     # Configuration
 
-    def route(self, methods, matcher, view=None):
+    def route(self, methods, matcher, view=None, *, name=None):
         if view is None:
             def decorator(view):
-                self.route(methods, matcher, view)
+                self.route(methods, matcher, view, name=name)
                 return view
             return decorator
         if isinstance(methods, str):
             methods = {methods}
         if not isinstance(matcher, Matcher):
             matcher = Matcher(matcher)
-        self._routes.append((methods, matcher, view))
+        self._routes.append((methods, matcher, view, name))
         return self
 
-    def include(self, matcher, router):
+    def include(self, matcher, router, *, name=None):
         if not isinstance(matcher, Matcher):
             matcher = Matcher(matcher)
-        self._routes.append((None, matcher, router))
+        self._routes.append((None, matcher, router, name))
         return self
 
     def not_found(self, view):
@@ -126,10 +129,16 @@ class Router(JackieToAsgi):
 
     # Application
 
-    def _get_view(self, method, path, *, root=True, base_params={}):
+    def _get_view(
+        self, method, path,
+        *, base_router=None, base_name='', base_params={},
+    ):
         allowed_methods = set()
 
-        for methods, matcher, view in self._routes:
+        if base_router is None:
+            base_router = self
+
+        for methods, matcher, view, name in self._routes:
             if methods is None:
                 try:
                     params, path = matcher.match(path)
@@ -138,7 +147,13 @@ class Router(JackieToAsgi):
                 try:
                     view = view._get_view(
                         method, path,
-                        root=False, base_params={**base_params, **params},
+                        base_router=base_router,
+                        base_name=(
+                            base_name + name + ':'
+                            if name is not None else
+                            base_name
+                        ),
+                        base_params={**base_params, **params},
                     )
                 except NoView as no_view:
                     methods = no_view.allowed_methods
@@ -150,29 +165,36 @@ class Router(JackieToAsgi):
                 except Matcher.Error:
                     continue
                 if method in methods:
+                    view = ResolvedView(
+                        router=base_router,
+                        name=base_name + name if name is not None else None,
+                        params={**base_params, **params},
+                        view=view,
+                    )
                     break
             allowed_methods.update(methods)
         else:
             if method == 'WEBSOCKET':
                 view = self._websocket_not_found
                 params = {**base_params}
-                if view is None and root:
+                if view is None and base_router is self:
                     view = websocket_not_found
             elif allowed_methods:
                 view = self._method_not_allowed
                 params = {**base_params, 'methods': allowed_methods}
-                if view is None and root:
+                if view is None and base_router is self:
                     view = method_not_allowed
             else:
                 view = self._not_found
                 params = {**base_params}
-                if view is None and root:
+                if view is None and base_router is self:
                     view = not_found
+            if view is not None:
+                view = ResolvedView(base_router, None, params, view)
 
         if view is None:
             raise NoView(allowed_methods)
 
-        view = ResolvedView(view, params)
         for middleware in reversed(self._middlewares):
             view = middleware(view)
         return view
@@ -186,6 +208,24 @@ class Router(JackieToAsgi):
             raise ValueError(f'unsupported scope type: {scope["type"]}')
         app = jackie_to_asgi(self._get_view(method, scope['path']))
         return await app(scope, receive, send)
+
+    def _get_matcher(self, name):
+        for methods, matcher, view, name_ in self._routes:
+            if methods is None:
+                if name_ is not None and not name.startswith(name_ + ':'):
+                    continue
+                try:
+                    return matcher + view._get_matcher(
+                        name if name_ is None else name[len(name_) + 1:],
+                    )
+                except ValueError:
+                    pass
+            elif name_ == name:
+                return matcher
+        raise ValueError('unknown name')
+
+    def reverse(self, name, **params):
+        return self._get_matcher(name).reverse(**params)
 
 
 class JackieRouter(AsgiToJackie):
