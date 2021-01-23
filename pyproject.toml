@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "jack"
+name = "jackie"
 version = "0.1.0"
 description = "A minimal ASGI web framework."
 authors = ["Daan van der Kallen <mail@daanvdk.com>"]
