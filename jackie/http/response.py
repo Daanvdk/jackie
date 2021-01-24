@@ -1,6 +1,7 @@
 import json
 
 from ..multidict import Headers
+from .. import multipart
 from .stream import Stream
 
 
@@ -13,8 +14,23 @@ class Response(Stream):
         self.status = status
         self.headers = Headers(headers, **kwargs)
 
+    def _get_content_type(self):
+        return self.headers.get('Content-Type')
+
 
 # Subclasses
+
+class FormResponse(Response):
+
+    def __init__(self, body={}, boundary=None, **kwargs):
+        if boundary is None:
+            boundary = multipart.generate_boundary()
+        body = multipart.serialize(body, boundary)
+        super().__init__(body, **kwargs)
+        self.headers.setdefault('Content-Type', (
+            f'multipart/form-data; boundary={boundary}'
+        ))
+
 
 class HtmlResponse(Response):
 

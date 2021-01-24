@@ -1,5 +1,10 @@
+from abc import ABC, abstractmethod
 import asyncio
 import json
+import urllib.parse
+
+from ..multidict import MultiDict
+from .. import multipart
 
 
 async def iterable_to_async_iterable(iterable):
@@ -7,7 +12,7 @@ async def iterable_to_async_iterable(iterable):
         yield value
 
 
-class Stream:
+class Stream(ABC):
 
     def __init__(self, chunks=b''):
         if isinstance(chunks, bytes):
@@ -38,7 +43,51 @@ class Stream:
         return b''.join(chunks)
 
     async def text(self):
-        return (await self.body()).decode()
+        return (await self.body()).decode(self.charset)
 
     async def json(self):
         return json.loads(await self.body())
+
+    async def form(self):
+        if self.content_type == 'application/x-www-form-urlencoded':
+            return MultiDict(urllib.parse.parse_qsl(await self.text()))
+        elif self.content_type == 'multipart/form-data':
+            return multipart.parse(await self.body(), boundary=self.boundary)
+        else:
+            raise ValueError(
+                'content type must be either '
+                'application/x-www-form-urlencoded or multipart/form-data, '
+                f'not {self.content_type}'
+            )
+
+    @abstractmethod
+    def _get_content_type(self):
+        raise NotImplementedError
+
+    @property
+    def content_type(self):
+        content_type = self._get_content_type()
+        if content_type is not None:
+            parts = content_type.split('; ')
+            return parts[0]
+        return None
+
+    @property
+    def charset(self):
+        content_type = self._get_content_type()
+        if content_type is not None:
+            parts = content_type.split('; ')
+            for part in parts[1:]:
+                if part.startswith('charset='):
+                    return part[len('charset='):]
+        return 'UTF-8'
+
+    @property
+    def boundary(self):
+        content_type = self._get_content_type()
+        if content_type is not None:
+            parts = content_type.split('; ')
+            for part in parts[1:]:
+                if part.startswith('boundary='):
+                    return part[len('boundary='):]
+        raise ValueError('no boundary provided')

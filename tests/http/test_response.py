@@ -1,8 +1,44 @@
 import pytest
 
 from jackie.http import (
-    HtmlResponse, JsonResponse, RedirectResponse, TextResponse,
+    FormResponse, HtmlResponse, JsonResponse, RedirectResponse, TextResponse,
 )
+from jackie.multipart import File
+
+
+@pytest.mark.asyncio()
+async def test_form_request():
+    response = FormResponse({
+        'foo': '123',
+        'bar': 'multi\nline\nstring',
+        'baz': File('baz.png', 'image/png', b'pngcontent'),
+    })
+    assert response.content_type == 'multipart/form-data'
+    boundary = response.boundary.encode()
+    assert await response.body() == (
+        b'--' + boundary + b'\n'
+        b'Content-Disposition: form-data; name=foo\n'
+        b'\n'
+        b'123\n'
+        b'--' + boundary + b'\n'
+        b'Content-Disposition: form-data; name=bar\n'
+        b'\n'
+        b'multi\n'
+        b'line\n'
+        b'string\n'
+        b'--' + boundary + b'\n'
+        b'Content-Disposition: form-data; name=baz; filename=baz.png\n'
+        b'Content-Type: image/png\n'
+        b'\n'
+        b'pngcontent\n'
+        b'--' + boundary + b'--\n'
+    )
+    data = await response.form()
+    assert set(data) == {'foo', 'bar', 'baz'}
+    assert data['foo'] == '123'
+    assert data['bar'] == 'multi\nline\nstring'
+    assert data['baz'].content_type == 'image/png'
+    assert await data['baz'].body() == b'pngcontent'
 
 
 @pytest.mark.asyncio
