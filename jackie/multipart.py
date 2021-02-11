@@ -52,19 +52,32 @@ def parse(data, boundary):
         try:
             disposition = headers.pop(b'content-disposition').split(b'; ')
         except KeyError:
-            raise ValueError('invalid form data: expected header Content-Disposition')
+            raise ValueError(
+                'invalid form data: expected header Content-Disposition'
+            )
         if len(disposition) < 2:
-            raise ValueError('invalid form data: missing data in Content-Disposition')
+            raise ValueError(
+                'invalid form data: missing data in Content-Disposition'
+            )
         if len(disposition) > 3:
-            raise ValueError('invalid form data: unexpected data in Content-Disposition')
+            raise ValueError(
+                'invalid form data: unexpected data in Content-Disposition'
+            )
         if disposition[0] != b'form-data':
-            raise ValueError('invalid form data: expected form-data Content-Disposition')
+            raise ValueError(
+                'invalid form data: expected form-data Content-Disposition'
+            )
         if not disposition[1].startswith(b'name='):
-            raise ValueError('invalid form data: expected name in Content-Disposition')
+            raise ValueError(
+                'invalid form data: expected name in Content-Disposition'
+            )
         name = disposition[1][len(b'name:'):].decode()
         if len(disposition) == 3:
             if not disposition[2].startswith(b'filename='):
-                raise ValueError('invalid form data: expected filename in Content-Disposition')
+                raise ValueError(
+                    'invalid form data: expected filename in '
+                    'Content-Disposition'
+                )
             file_name = disposition[2][len(b'filename='):].decode()
         else:
             file_name = None
@@ -75,10 +88,15 @@ def parse(data, boundary):
             try:
                 content_type = headers.pop(b'content-type').decode()
             except KeyError:
-                raise ValueError('invalid form data: expected header Content-Type')
+                raise ValueError(
+                    'invalid form data: expected header Content-Type'
+                )
 
         if headers:
-            raise ValueError('invalid form data: unexpected header ' + next(iter(headers)).decode())
+            raise ValueError(
+                'invalid form data: unexpected header ' +
+                next(iter(headers)).decode()
+            )
 
         value = BytesIO()
         first = True

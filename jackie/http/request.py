@@ -35,7 +35,7 @@ class FormRequest(Request):
             boundary = multipart.generate_boundary()
         body = multipart.serialize(body, boundary)
         super().__init__(path=path, body=body, **kwargs)
-        self.headers.setdefault(f'Content-Type', (
+        self.headers.setdefault('Content-Type', (
             f'multipart/form-data; boundary={boundary}'
         ))
 

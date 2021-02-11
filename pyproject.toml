@@ -17,7 +17,6 @@ pytest-cov = "^2.11.0"
 pytest-flake8 = "^1.0.7"
 
 [tool.pytest.ini_options]
-testpaths = "tests"
 addopts = "--flake8 --cov --cov-report=term-missing"
 
 [tool.coverage.run]
