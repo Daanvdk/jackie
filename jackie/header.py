@@ -120,13 +120,17 @@ def parse_content_disposition(content):
     return content, (value, params)
 
 
+def parse_media_type(content):
+    content, type_ = parse_value(content)
+    content, _ = parse_token(content, '/')
+    content, subtype = parse_value(content)
+    return content, f'{type_}/{subtype}'
+
+
 @parser
 def parse_content_type(content):
     if content is None:
         return None, {}
-    content, suptype = parse_value(content)
-    content, _ = parse_token(content, '/')
-    content, subtype = parse_value(content)
-    value = f'{suptype}/{subtype}'
+    content, media_type = parse_media_type(content)
     content, params = parse_params(content)
-    return content, (value, params)
+    return content, (media_type, params)
