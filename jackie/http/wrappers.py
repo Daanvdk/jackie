@@ -37,7 +37,7 @@ class JackieToAsgi:
             request = Request(
                 method=scope['method'],
                 path=scope['path'],
-                query=urllib.parse.parse_qsl(scope['querystring']),
+                query=urllib.parse.parse_qsl(scope['query_string'].decode()),
                 headers=scope['headers'],
                 body=get_request_body(receive),
             )
@@ -143,7 +143,7 @@ class JackieToAsgi:
 
             socket = Socket(
                 path=scope['path'],
-                query=urllib.parse.parse_qsl(scope['querystring']),
+                query=urllib.parse.parse_qsl(scope['query_string'].decode()),
                 headers=scope['headers'],
                 accept=accept,
                 close=close,
@@ -236,9 +236,9 @@ class AsgiToJackie:
                 'type': 'http',
                 'method': request.method,
                 'path': request.path,
-                'querystring': urllib.parse.urlencode(
+                'query_string': urllib.parse.urlencode(
                     list(request.query.allitems())
-                ),
+                ).encode(),
                 'headers': [
                     (key.encode(), value.encode())
                     for key, value in request.headers.allitems()
@@ -282,9 +282,9 @@ class AsgiToJackie:
             scope = {
                 'type': 'websocket',
                 'path': request.path,
-                'querystring': urllib.parse.urlencode(
+                'query_string': urllib.parse.urlencode(
                     list(request.query.allitems())
-                ),
+                ).encode(),
                 'headers': [
                     (key.encode(), value.encode())
                     for key, value in request.headers.allitems()

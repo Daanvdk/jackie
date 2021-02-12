@@ -23,7 +23,7 @@ async def test_jackie_to_asgi():
         'type': 'http',
         'method': 'GET',
         'path': '/',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
     task = asyncio.ensure_future(app(scope, input_queue.get, output_queue.put))
@@ -49,7 +49,7 @@ async def test_jackie_to_asgi():
         'type': 'http',
         'method': 'GET',
         'path': '/',
-        'querystring': 'name=Jack',
+        'query_string': b'name=Jack',
         'headers': [],
     }
     task = asyncio.ensure_future(app(scope, input_queue.get, output_queue.put))
@@ -76,7 +76,7 @@ async def test_jackie_to_asgi():
 async def test_asgi_to_jackie():
     @asgi_to_jackie
     async def view(scope, receive, send):
-        query = urllib.parse.parse_qs(scope['querystring'])
+        query = urllib.parse.parse_qs(scope['query_string'].decode())
         try:
             name = query['name'][-1]
         except KeyError:
@@ -126,7 +126,7 @@ async def test_jackie_to_asgi_request_body():
         'type': 'http',
         'method': 'GET',
         'path': '/',
-        'querystring': 'name=Jack',
+        'query_string': b'name=Jack',
         'headers': [],
     }
     task = asyncio.ensure_future(app(scope, input_queue.get, output_queue.put))
@@ -295,7 +295,7 @@ async def test_jackie_to_asgi_websocket():
     scope = {
         'type': 'websocket',
         'path': '/',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
     task = asyncio.ensure_future(
@@ -363,7 +363,7 @@ async def test_jackie_to_asgi_websocket_message_types():
     scope = {
         'type': 'websocket',
         'path': '/',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
     task = asyncio.ensure_future(
@@ -417,7 +417,7 @@ async def test_jackie_to_asgi_websocket_double_accept():
     scope = {
         'type': 'websocket',
         'path': '/',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
 
@@ -447,7 +447,7 @@ async def test_jackie_to_asgi_websocket_double_close():
     scope = {
         'type': 'websocket',
         'path': '/',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
 
@@ -476,7 +476,7 @@ async def test_jackie_to_asgi_websocket_receive_before_accept():
     scope = {
         'type': 'websocket',
         'path': '/',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
 
@@ -501,7 +501,7 @@ async def test_jackie_to_asgi_websocket_send_before_accept():
     scope = {
         'type': 'websocket',
         'path': '/',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
 
@@ -527,7 +527,7 @@ async def test_jackie_to_asgi_websocket_unexpected_message():
     scope = {
         'type': 'websocket',
         'path': '/',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
 
@@ -554,7 +554,7 @@ async def test_jackie_to_asgi_send_invalid_type():
     scope = {
         'type': 'websocket',
         'path': '/',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
 

@@ -215,7 +215,7 @@ async def test_post_asgi():
         'type': 'http',
         'path': '/post/',
         'method': 'GET',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
     task = asyncio.ensure_future(app(scope, input_queue.get, output_queue.put))
@@ -346,7 +346,7 @@ async def test_websocket_route():
     scope = {
         'type': 'websocket',
         'path': '/',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
     task = asyncio.ensure_future(
@@ -387,7 +387,7 @@ async def test_websocket_route():
     scope = {
         'type': 'websocket',
         'path': '/foo',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
     task = asyncio.ensure_future(
@@ -407,7 +407,7 @@ async def test_websocket_route():
     scope = {
         'type': 'websocket',
         'path': '/foo',
-        'querystring': '',
+        'query_string': b'',
         'headers': [],
     }
     task = asyncio.ensure_future(
