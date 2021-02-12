@@ -3,6 +3,7 @@ import urllib.parse
 
 from asgiref.compatibility import guarantee_single_callable
 
+from ..bridge import bridge
 from ..multidict import Headers
 
 from .exceptions import Disconnect
@@ -182,6 +183,8 @@ async def send_request_body(chunks, send):
         })
     except Disconnect:
         await send({'type': 'http.disconnect'})
+    except (RuntimeError, GeneratorExit):
+        pass
 
 
 async def get_response_body(receive, cleanup):
@@ -204,15 +207,11 @@ class AsgiToJackie:
 
     async def __call__(self, request, **params):
         if isinstance(request, Request):
-            input_queue = asyncio.Queue()
-            output_queue = asyncio.Queue()
-
-            body_task = asyncio.ensure_future(
-                send_request_body(request.chunks(), input_queue.put)
-            )
+            put_in, get_in = bridge()
+            put_out, get_out = bridge()
 
             async def receive():
-                message_task = asyncio.ensure_future(input_queue.get())
+                message_task = asyncio.ensure_future(get_in())
                 await asyncio.wait(
                     [body_task, message_task],
                     return_when=asyncio.FIRST_COMPLETED,
@@ -222,6 +221,16 @@ class AsgiToJackie:
                 except asyncio.InvalidStateError:
                     message_task.cancel()
                     raise ValueError('no more messages') from None
+
+            async def send(message):
+                try:
+                    await put_out(message)
+                except (RuntimeError, GeneratorExit):
+                    pass
+
+            body_task = asyncio.ensure_future(
+                send_request_body(request.chunks(), put_in)
+            )
 
             scope = {
                 'type': 'http',
@@ -241,11 +250,11 @@ class AsgiToJackie:
                 },
             }
             app_task = asyncio.ensure_future(
-                self.app(scope, receive, output_queue.put)
+                self.app(scope, receive, send)
             )
 
             async def receive():
-                message_task = asyncio.ensure_future(output_queue.get())
+                message_task = asyncio.ensure_future(get_out())
                 await asyncio.wait(
                     [app_task, message_task],
                     return_when=asyncio.FIRST_COMPLETED,
