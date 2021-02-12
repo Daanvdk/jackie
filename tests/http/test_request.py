@@ -36,7 +36,7 @@ async def test_form_request():
     assert data['foo'] == '123'
     assert data['bar'] == 'multi\nline\nstring'
     assert data['baz'].content_type == 'image/png'
-    assert await data['baz'].body() == b'pngcontent'
+    assert data['baz'].content == b'pngcontent'
 
 
 @pytest.mark.asyncio

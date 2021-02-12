@@ -1,19 +1,38 @@
+from collections import namedtuple
 from io import BytesIO
 import os
 
-from .http.stream import Stream
 from .multidict import MultiDict
+from .header import parse_content_disposition, parse_content_type
 
 
-class File(Stream):
+File = namedtuple('File', ['name', 'content_type', 'content'])
+
+
+class File:
 
     def __init__(self, name, content_type, content):
-        super().__init__(content)
         self.name = name
         self._content_type = content_type
+        self.content = content
 
-    def _get_content_type(self):
-        return self._content_type
+    @property
+    def content_type(self):
+        content_type, _ = parse_content_type(self._content_type)
+        return content_type
+
+    @property
+    def charset(self):
+        _, params = parse_content_type(self._content_type)
+        return params.get('charset', 'UTF-8')
+
+    @property
+    def boundary(self):
+        _, params = parse_content_type(self._content_type)
+        try:
+            return params['boundary']
+        except KeyError:
+            raise ValueError('no boundary provided') from None
 
 
 def generate_boundary():
@@ -24,11 +43,11 @@ def parse(data, boundary):
     boundary = boundary.encode()
     start = b'--' + boundary
     end = b'--' + boundary + b'--'
-    lines = iter(data.split(b'\n'))
+    lines = iter(data.splitlines(True))
 
     data = MultiDict()
 
-    line = next(lines)  # Split always returns at least 1 result
+    line = next(lines).rstrip(b'\r\n')
     if line == end:
         return data
     if line != start:
@@ -38,49 +57,52 @@ def parse(data, boundary):
         headers = {}
         while True:
             try:
-                line = next(lines)
+                line = next(lines).rstrip(b'\r\n')
             except StopIteration:
                 raise ValueError('invalid form data: unexpected end of data')
             if not line:
                 break
             try:
-                key, value = line.split(b': ', 1)
+                key, value = line.split(b':', 1)
             except ValueError:
                 raise ValueError('invalid form data: expected header')
-            headers[key.lower()] = value
+            headers[key.strip().lower()] = value.strip()
 
         try:
-            disposition = headers.pop(b'content-disposition').split(b'; ')
+            disposition, disposition_params = parse_content_disposition(
+                headers.pop(b'content-disposition')
+            )
         except KeyError:
             raise ValueError(
                 'invalid form data: expected header Content-Disposition'
             )
-        if len(disposition) < 2:
+        except ValueError as e:
             raise ValueError(
-                'invalid form data: missing data in Content-Disposition'
-            )
-        if len(disposition) > 3:
-            raise ValueError(
-                'invalid form data: unexpected data in Content-Disposition'
-            )
-        if disposition[0] != b'form-data':
+                f'invalid form data: invalid Content-Disposition: {e}'
+            ) from None
+
+        if disposition != 'form-data':
             raise ValueError(
                 'invalid form data: expected form-data Content-Disposition'
             )
-        if not disposition[1].startswith(b'name='):
+
+        try:
+            name = disposition_params.pop('name')
+        except KeyError:
             raise ValueError(
                 'invalid form data: expected name in Content-Disposition'
             )
-        name = disposition[1][len(b'name:'):].decode()
-        if len(disposition) == 3:
-            if not disposition[2].startswith(b'filename='):
-                raise ValueError(
-                    'invalid form data: expected filename in '
-                    'Content-Disposition'
-                )
-            file_name = disposition[2][len(b'filename='):].decode()
-        else:
+
+        try:
+            file_name = disposition_params.pop('filename')
+        except KeyError:
             file_name = None
+
+        if disposition_params:
+            raise ValueError(
+                'invalid form data: unexpected Content-Disposition param ' +
+                next(iter(disposition_params))
+            )
 
         if file_name is None:
             content_type = None
@@ -99,28 +121,28 @@ def parse(data, boundary):
             )
 
         value = BytesIO()
-        first = True
+        line_end = b''
         while True:
             try:
                 line = next(lines)
             except StopIteration:
                 raise ValueError('invalid form data: unexpected end of data')
-            if line in [start, end]:
+            stripped_line = line.rstrip(b'\r\n')
+            if stripped_line in [start, end]:
                 break
-            if first:
-                first = False
-            else:
-                value.write(b'\n')
-            value.write(line)
+            value.write(line_end)
+            value.write(stripped_line)
+            line_end = line[len(stripped_line):]
 
         value = value.getvalue()
         if file_name is not None:
             value = File(file_name, content_type, value)
         else:
             value = value.decode()
+        print('FIELD', name, value)
         data.appendlist(name, value)
 
-        if line == end:
+        if stripped_line == end:
             break
 
     return data
@@ -147,7 +169,7 @@ async def serialize(data, boundary):
             yield value.name.encode()
             yield b'\nContent-Type: '
             yield value._content_type.encode()
-            value = await value.body()
+            value = value.content
         else:
             value = value.encode()
         yield b'\n\n'

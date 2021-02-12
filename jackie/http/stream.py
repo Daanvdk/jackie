@@ -4,6 +4,7 @@ import json
 import urllib.parse
 
 from ..multidict import MultiDict
+from ..header import parse_content_type
 from .. import multipart
 
 
@@ -66,28 +67,18 @@ class Stream(ABC):
 
     @property
     def content_type(self):
-        content_type = self._get_content_type()
-        if content_type is not None:
-            parts = content_type.split('; ')
-            return parts[0]
-        return None
+        content_type, _ = parse_content_type(self._get_content_type())
+        return content_type
 
     @property
     def charset(self):
-        content_type = self._get_content_type()
-        if content_type is not None:
-            parts = content_type.split('; ')
-            for part in parts[1:]:
-                if part.startswith('charset='):
-                    return part[len('charset='):]
-        return 'UTF-8'
+        _, params = parse_content_type(self._get_content_type())
+        return params.get('charset', 'UTF-8')
 
     @property
     def boundary(self):
-        content_type = self._get_content_type()
-        if content_type is not None:
-            parts = content_type.split('; ')
-            for part in parts[1:]:
-                if part.startswith('boundary='):
-                    return part[len('boundary='):]
-        raise ValueError('no boundary provided')
+        _, params = parse_content_type(self._get_content_type())
+        try:
+            return params['boundary']
+        except KeyError:
+            raise ValueError('no boundary provided') from None

@@ -211,7 +211,7 @@ async def test_parse_form_urlencoded():
 async def test_parse_form_incorrect_content_type():
     stream = ContentTypeStream(
         body=b'foo=123&bar=456&baz=789',
-        content_type='',
+        content_type='image/png',
     )
     with pytest.raises(ValueError):
         await stream.form()

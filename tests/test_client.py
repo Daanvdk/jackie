@@ -148,7 +148,7 @@ async def test_form_body():
     assert isinstance(form['bar'], File)
     assert form['bar'].name == 'bar.txt'
     assert form['bar'].content_type == 'text/plain'
-    assert await form['bar'].text() == 'bar'
+    assert form['bar'].content == b'bar'
 
 
 @pytest.mark.asyncio
