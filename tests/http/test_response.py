@@ -76,3 +76,10 @@ async def test_text_response():
     assert response.headers['Content-Type'] == 'text/plain; charset=UTF-8'
     assert await response.body() == b'foobar'
     assert await response.text() == 'foobar'
+
+
+def test_ok():
+    assert TextResponse(status=200).ok
+    assert TextResponse(status=301).ok
+    assert not TextResponse(status=400).ok
+    assert not TextResponse(status=500).ok

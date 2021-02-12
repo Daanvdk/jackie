@@ -112,6 +112,7 @@ class JackieToAsgi:
                 if message['type'] == 'websocket.receive':
                     return message.get('text') or message.get('bytes')
                 elif message['type'] == 'websocket.disconnect':
+                    state = 'closed'
                     raise Disconnect(message.get('code', 1000))
                 else:
                     raise ValueError(f'unexpected type: {message["type"]}')
@@ -255,7 +256,7 @@ class AsgiToJackie:
                     message_task.cancel()
                     app_exception = app_task.exception()
                     if app_exception:
-                        raise app_exception from None
+                        raise app_exception
                     else:
                         raise ValueError('expected more messages') from None
 
