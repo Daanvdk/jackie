@@ -8,6 +8,7 @@ def bridge():
     async def send(message):
         receiver = await queue.get()
         receiver.set_result(message)
+        await asyncio.sleep(0)  # Give control to receiver
 
     async def receive():
         receiver = loop.create_future()
