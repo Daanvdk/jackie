@@ -1,0 +1,40 @@
+site_name: Jackie
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  features:
+    - navigation.sections
+  palette:
+    primary: white
+    accent: indigo
+  favicon: assets/logo.svg
+  logo: assets/logo.svg
+
+extra_css:
+  - assets/stylesheets/base.css
+
+markdown_extensions:
+  - pymdownx.superfences
+  - pymdownx.highlight
+
+repo_url: https://github.com/daanvdk/jackie
+
+copyright: Copyright &copy; 2021 Daan van der Kallen
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/daanvdk/jackie
+
+nav:
+  - Home: index.md
+  - Quick start:
+    - Installation: quick-start/installation.md
+    - Hello World: quick-start/hello-world.md
+    - Deployment: quick-start/deployment.md
+  - Reference:
+    - jackie.client: reference/client.md
+    - jackie.http: reference/http.md
+    - jackie.multidict: reference/multidict.md
+    - jackie.router: reference/router.md
