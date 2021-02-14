@@ -5,6 +5,7 @@ on:
     branches:
       - master
     paths:
+      - .github/workflows/docs.yml
       - mkdocs.yml
       - docs/**
 
@@ -38,4 +39,4 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
 
     - name: Publish docs
-      run: poetry run mkdocs gh-pages
+      run: poetry run mkdocs gh-deploy
