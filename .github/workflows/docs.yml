@@ -39,4 +39,4 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
 
     - name: Publish docs
-      run: poetry run mkdocs gh-deploy
+      run: poetry run mkdocs gh-deploy --force
