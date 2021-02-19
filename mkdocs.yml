@@ -1,4 +1,5 @@
 site_name: Jackie
+site_url: https://daanvdk.github.io/jackie
 
 theme:
   name: material
