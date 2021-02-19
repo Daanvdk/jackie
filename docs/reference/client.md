@@ -6,8 +6,8 @@ application using a simple API.
 
 Initializes a client for the provided ASGI app `app`.
 
-### methods
-#### request
+### Methods
+#### `request`
 `coroutine request(path='/', *, form, method='GET', query=[], headers=[], **headers)`  
 `coroutine request(path='/', *, json, method='GET', query=[], headers=[], **headers)`  
 `coroutine request(path='/', *, text, method='GET', query=[], headers=[], **headers)`  
@@ -16,7 +16,7 @@ Initializes a client for the provided ASGI app `app`.
 Returns a response of type [Response](http.md#response) from the app for a
 request described by the arguments.
 
-Both `query` and `headers` expect either a `dict`, an iterable of 2-tuples or a
+Both `query` and `headers` expect a `dict`, an iterable of 2-tuples or a
 [`MultiDict`](multidict.md#multidict).
 
 There are 4 parameters that can describe the body of the request. `form`,
@@ -25,7 +25,7 @@ determine whether the request will be a [`FormRequest`](http.md#formrequest),
 [`JsonRequest`](http.md#jsonrequest), [`TextRequest`](http.md#textrequest) or
 [`Request`](http.md#request) respectively.
 
-#### get
+#### `get`
 `coroutine get(path='/', *, form, method='GET', query=[], headers=[], **headers)`  
 `coroutine get(path='/', *, json, method='GET', query=[], headers=[], **headers)`  
 `coroutine get(path='/', *, text, method='GET', query=[], headers=[], **headers)`  
@@ -33,7 +33,7 @@ determine whether the request will be a [`FormRequest`](http.md#formrequest),
 
 Shorthand for [`request`](client.md#request) where `method` defaults to `'GET'`.
 
-#### head
+#### `head`
 `coroutine head(path='/', *, form, method='GET', query=[], headers=[], **headers)`  
 `coroutine head(path='/', *, json, method='GET', query=[], headers=[], **headers)`  
 `coroutine head(path='/', *, text, method='GET', query=[], headers=[], **headers)`  
@@ -41,7 +41,7 @@ Shorthand for [`request`](client.md#request) where `method` defaults to `'GET'`.
 
 Shorthand for [`request`](client.md#request) where `method` defaults to `'HEAD'`.
 
-#### post
+#### `post`
 `coroutine post(path='/', *, form, method='GET', query=[], headers=[], **headers)`  
 `coroutine post(path='/', *, json, method='GET', query=[], headers=[], **headers)`  
 `coroutine post(path='/', *, text, method='GET', query=[], headers=[], **headers)`  
@@ -49,7 +49,7 @@ Shorthand for [`request`](client.md#request) where `method` defaults to `'HEAD'`
 
 Shorthand for [`request`](client.md#request) where `method` defaults to `'POST'`.
 
-#### put
+#### `put`
 `coroutine put(path='/', *, form, method='GET', query=[], headers=[], **headers)`  
 `coroutine put(path='/', *, json, method='GET', query=[], headers=[], **headers)`  
 `coroutine put(path='/', *, text, method='GET', query=[], headers=[], **headers)`  
@@ -57,7 +57,7 @@ Shorthand for [`request`](client.md#request) where `method` defaults to `'POST'`
 
 Shorthand for [`request`](client.md#request) where `method` defaults to `'PUT'`.
 
-#### delete
+#### `delete`
 `coroutine delete(path='/', *, form, method='GET', query=[], headers=[], **headers)`  
 `coroutine delete(path='/', *, json, method='GET', query=[], headers=[], **headers)`  
 `coroutine delete(path='/', *, text, method='GET', query=[], headers=[], **headers)`  
@@ -65,7 +65,7 @@ Shorthand for [`request`](client.md#request) where `method` defaults to `'PUT'`.
 
 Shorthand for [`request`](client.md#request) where `method` defaults to `'DELETE'`.
 
-#### connect
+#### `connect`
 `coroutine connect(path='/', *, form, method='GET', query=[], headers=[], **headers)`  
 `coroutine connect(path='/', *, json, method='GET', query=[], headers=[], **headers)`  
 `coroutine connect(path='/', *, text, method='GET', query=[], headers=[], **headers)`  
@@ -73,7 +73,7 @@ Shorthand for [`request`](client.md#request) where `method` defaults to `'DELETE
 
 Shorthand for [`request`](client.md#request) where `method` defaults to `'CONNECT'`.
 
-#### options
+#### `options`
 `coroutine options(path='/', *, form, method='GET', query=[], headers=[], **headers)`  
 `coroutine options(path='/', *, json, method='GET', query=[], headers=[], **headers)`  
 `coroutine options(path='/', *, text, method='GET', query=[], headers=[], **headers)`  
@@ -81,7 +81,7 @@ Shorthand for [`request`](client.md#request) where `method` defaults to `'CONNEC
 
 Shorthand for [`request`](client.md#request) where `method` defaults to `'OPTIONS'`.
 
-#### trace
+#### `trace`
 `coroutine trace(path='/', *, form, method='GET', query=[], headers=[], **headers)`  
 `coroutine trace(path='/', *, json, method='GET', query=[], headers=[], **headers)`  
 `coroutine trace(path='/', *, text, method='GET', query=[], headers=[], **headers)`  
@@ -89,7 +89,7 @@ Shorthand for [`request`](client.md#request) where `method` defaults to `'OPTION
 
 Shorthand for [`request`](client.md#request) where `method` defaults to `'TRACE'`.
 
-#### patch
+#### `patch`
 `coroutine patch(path='/', *, form, method='GET', query=[], headers=[], **headers)`  
 `coroutine patch(path='/', *, json, method='GET', query=[], headers=[], **headers)`  
 `coroutine patch(path='/', *, text, method='GET', query=[], headers=[], **headers)`  
@@ -97,13 +97,13 @@ Shorthand for [`request`](client.md#request) where `method` defaults to `'TRACE'
 
 Shorthand for [`request`](client.md#request) where `method` defaults to `'PATCH'`.
 
-#### websocket
+#### `websocket`
 `coroutine websocket(path='/', *, query=[], headers=[], **headers)`
 
 Returns a socket of type [`Socket`](http.md#socket) with a websocket connection
 to the app described by the arguments.
 
-Both `query` and `headers` expect either a `dict`, an iterable of 2-tuples or a
+Both `query` and `headers` expect a `dict`, an iterable of 2-tuples or a
 [`MultiDict`](multidict.md#multidict).
 
 The returned socket differes from a normal [`Socket`](http.md#socket) in a few

@@ -37,4 +37,6 @@ nav:
     - jackie.client: reference/client.md
     - jackie.http: reference/http.md
     - jackie.multidict: reference/multidict.md
+    - jackie.multipart: reference/multipart.md
     - jackie.router: reference/router.md
+  - Changelog: changelog.md
