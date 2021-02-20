@@ -1,15 +1,32 @@
+function checkExists(link, href) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("HEAD", href);
+    xhr.onload = function() {
+        if (this.status === 200) {
+            link.href = href;
+        }
+    }
+    xhr.send();
+}
+
 window.addEventListener("DOMContentLoaded", function() {
     // This is a bit hacky. Figure out the base URL from a known CSS file the
     // template refers to...
     var ex = new RegExp("/?assets/stylesheets/base.css$");
     var sheet = document.querySelector('link[href$="base.css"]');
 
-    var ABS_BASE_URL = sheet.href.replace(ex, "").split("/");
-    var CURRENT_VERSION = ABS_BASE_URL.pop();
-    ABS_BASE_URL = ABS_BASE_URL.join("/");
+    var HOST = window.location.protocol + '//' + window.location.host;
+    var BASE_URL = sheet.href.replace(ex, "");
+    if (BASE_URL.startsWith(HOST)) {
+        BASE_URL = BASE_URL.slice(HOST.length);
+    }
+
+    var parts = BASE_URL.split('/');
+    var CURRENT_VERSION = parts.pop();
+    BASE_URL = parts.join("/");
 
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", ABS_BASE_URL + "/versions.json");
+    xhr.open("GET", BASE_URL + "/versions.json");
     xhr.onload = function() {
         var versions = JSON.parse(this.responseText);
 
@@ -66,6 +83,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
                     nav.appendChild(label);
                 }
+                var VERSION_URL = BASE_URL + "/" + currentVersion.version;
                 { // List
                     var list = document.createElement("ul");
                     list.className = "md-nav__list";
@@ -88,7 +106,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
                         var link = document.createElement("a");
                         link.className = "md-nav__link" + (active ? " md-nav__link--active" : "");
-                        link.href = ABS_BASE_URL + "/" + versions[i].version;
+                        link.href = BASE_URL + "/" + versions[i].version;
                         link.appendChild(text);
 
                         var item = document.createElement("li");
@@ -96,6 +114,13 @@ window.addEventListener("DOMContentLoaded", function() {
                         item.appendChild(link);
 
                         list.appendChild(item);
+
+                        if (window.location.pathname.startsWith(VERSION_URL)) {
+                            checkExists(link, (
+                                BASE_URL + "/" + versions[i].version +
+                                window.location.pathname.slice(VERSION_URL.length)
+                            ));
+                        }
                     }
                     nav.appendChild(list);
                 }
