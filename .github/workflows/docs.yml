@@ -44,4 +44,4 @@ jobs:
         git config user.email ""
 
     - name: Publish docs
-      run: poetry run mike deploy --push dev
+      run: poetry run mike deploy --push --force dev
