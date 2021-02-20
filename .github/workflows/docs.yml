@@ -38,5 +38,8 @@ jobs:
       run: poetry install
       if: steps.cache.outputs.cache-hit != 'true'
 
+    - name: Set git username
+      run: git config user.name github-actions
+
     - name: Publish docs
       run: poetry run mike deploy dev
