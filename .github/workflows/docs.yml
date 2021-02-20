@@ -39,4 +39,4 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
 
     - name: Publish docs
-      run: poetry run mike publish dev
+      run: poetry run mike deploy dev
