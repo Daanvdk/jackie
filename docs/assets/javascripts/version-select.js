@@ -83,7 +83,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
                     nav.appendChild(label);
                 }
-                var VERSION_URL = BASE_URL + "/" + currentVersion.version;
+                var VERSION_URL = BASE_URL + "/" + CURRENT_VERSION;
                 { // List
                     var list = document.createElement("ul");
                     list.className = "md-nav__list";
