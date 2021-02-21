@@ -15,9 +15,6 @@ theme:
 extra_css:
   - assets/stylesheets/base.css
 
-extra_javascript:
-  - assets/javascripts/version-select.js
-
 markdown_extensions:
   - pymdownx.superfences
   - pymdownx.highlight

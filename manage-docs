@@ -1,0 +1,244 @@
+#!/usr/bin/env python3
+import argparse
+from datetime import date
+from html import escape
+import json
+from pathlib import Path
+from subprocess import run
+import tempfile
+import xml.etree.ElementTree as ET
+
+from bs4 import BeautifulSoup
+import yaml
+
+
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers(dest='command', required=True)
+
+build_parser = subparsers.add_parser('build')
+build_parser.add_argument('-t', '--title', help='the title of the version')
+build_parser.add_argument('version', help='the version to build')
+build_parser.add_argument('alias', nargs='*', help='aliases for the version')
+
+delete_parser = subparsers.add_parser('delete')
+delete_parser.add_argument('version', nargs='+', help='the version or alias to delete')
+
+default_parser = subparsers.add_parser('default')
+default_parser.add_argument('version', help='the version or alias to set as default')
+
+args = parser.parse_args()
+
+
+REPO = 'git@github.com:daanvdk/jackie.git'
+BRANCH = 'gh-pages'
+
+
+with tempfile.TemporaryDirectory() as dest:
+    src = Path(__file__).parent.resolve()
+    dest = Path(dest).resolve()
+
+    # Clone current docs
+    run(['git', 'clone', '-b', BRANCH, REPO, dest], check=True)
+
+    build_info = dest / '.buildinfo'
+    if build_info.is_file():
+        build_info = json.loads(build_info.read_text())
+    else:
+        build_info = {'versions': {}}
+
+    base_config = yaml.safe_load(src.joinpath('mkdocs.yml').read_text())
+
+    # Handle build/delete
+    if args.command == 'build':
+        if args.version in build_info:
+            run(['rm', '-rf', dest / args.version])
+            for alias in build_info[args.version]['aliases']:
+                run(['rm', '-rf', dest / alias])
+
+        versions = {args.version, *args.alias}
+        for version in versions:
+            with tempfile.NamedTemporaryFile('w', dir=src) as config:
+                config = Path(config.name)
+                config.write_text(yaml.dump({
+                    **base_config,
+                    'site_url': base_config['site_url'] + '/' + version,
+                }))
+                version = dest.joinpath(version).resolve()
+                assert version.parent == dest, f'invalid version: {version}'
+                run(['mkdocs', 'build', '-d', version, '-f', config], check=True)
+
+        build_info['versions'] = {
+            version: {
+                **version_info,
+                'aliases': sorted(set(version_info['aliases']) - versions),
+            }
+            for version, version_info in build_info['versions'].items()
+            if version not in versions
+        }
+
+        build_info['versions'][args.version] = {
+            'title': args.title or args.version,
+            'aliases': sorted(set(args.alias)),
+        }
+
+        if 'default' not in build_info:
+            build_info['default'] = args.version
+
+    elif args.command == 'delete':
+        versions = set(args.version)
+
+        for version in versions:
+            version = dest.joinpath(version).resolve()
+            assert version.parent == dest, f'invalid version: {version}'
+            run(['rm', '-rf', version], check=True)
+
+        build_info['versions'] = {
+            version: {
+                **version_info,
+                'aliases': sorted(set(version_info['aliases']) - versions),
+            }
+            for version, version_info in build_info['versions'].items()
+            if version not in versions
+        }
+
+    elif args.command == 'default':
+        build_info['default'] = args.version
+
+    # Update version selects
+    version_names = {}
+    for version, version_info in build_info['versions'].items():
+        version_names[version] = version_info['title']
+        if version_info['aliases']:
+            version_names[version] += ' (' + ', '.join(version_info['aliases']) + ')'
+
+    def get_version_select(path):
+        path = path.parent.relative_to(dest)
+        key = path.parts[0]
+        path = path.relative_to(key)
+
+        version = next(
+            {'version': version, **version_info}
+            for version, version_info in build_info['versions'].items()
+            if key == version or key in version_info['aliases']
+        )
+        version_name = version_names[version['version']]
+
+        parts = []
+        parts.append(f"""
+            <li class="md-nav__item md-nav__item--nested">
+                <input id="version-select" class="md-nav__toggle md-toggle" type="checkbox" data-md-toggle="version-select" />
+                <label class="md-nav__link" for="version-select">
+                    Version: {escape(version_name)}
+                    <span class="md-nav__icon md-icon"></span>
+                </label>
+                <nav class="md-nav" aria-label="Version: {escape(version_name)}" data-md-level="1">
+                    <label class="md-nav__title" for="verison-select">
+                        <span class="md-nav__icon md-icon"></span>
+                        Version: {escape(version_name)}
+                    </label>
+                    <ul class="md-nav__list">
+        """)
+
+        for other_version, other_version_name in sorted(
+            version_names.items(),
+            key=lambda v: v[1],
+        ):
+            active = other_version == version['version']
+            if active:
+                href = './'
+            elif path == Path('.'):
+                href = '../' + other_version
+            else:
+                href = '../' * (len(path.parts) + 1) + other_version + '/'
+                if dest.joinpath(other_version, path, 'index.html').is_file():
+                    href += str(path) + '/'
+            parts.append(f"""
+                <li class="md-nav__item{' md-nav__item--active' if active else ''}">
+                    <a class="md-nav__link{' md-nav__link--active' if active else ''}" href="{escape(href)}">
+                        {other_version_name}
+                    </a>
+                </li>
+            """)
+
+        parts.append("""
+                    </ul>
+                </nav>
+            </li>
+        """)
+        return ''.join(parts)
+
+    for html_path in dest.glob('*/**/*.html'):
+        soup = BeautifulSoup(html_path.read_text(), 'html.parser')
+        version_select = BeautifulSoup(get_version_select(html_path), 'html.parser')
+        for sidebar in soup.select('.md-nav--primary > .md-nav__list'):
+            try:
+                old = next(iter(sidebar.select('#version-select'))).parent
+            except StopIteration:
+                old = None
+            if old:
+                old.replace_with(version_select)
+            else:
+                sidebar.append(version_select)
+        html_path.write_text(soup.prettify())
+
+    # Copy files from default to root
+    for path in ['index.html', '404.html']:
+        def map_href(href):
+            if (
+                href.startswith('http://') or
+                href.startswith('https://') or
+                href.startswith('/')
+            ):
+                return href
+            elif href.startswith('../'):
+                return href[3:]
+            elif href == './':
+                return build_info['default']
+            else:
+                return build_info['default'] + '/' + href
+
+        soup = BeautifulSoup(dest.joinpath(build_info['default'], path).read_text(), 'html.parser')
+        for node in soup.select('a[href], link[href]'):
+            node['href'] = map_href(node['href'])
+        for node in soup.select('img[src], script[src]'):
+            node['src'] = map_href(node['src'])
+        dest.joinpath(path).write_text(soup.prettify())
+
+    # Join sitemaps
+    flat_versions = []
+    for version, version_info in build_info['versions'].items():
+        flat_versions.append(version)
+        flat_versions.extend(version_info['aliases'])
+
+    ET.register_namespace('', 'http://www.sitemaps.org/schemas/sitemap/0.9')
+    sitemap = ET.parse(dest / flat_versions[0] / 'sitemap.xml')
+
+    for version in flat_versions[1:]:
+        version_sitemap = ET.parse(dest / version / 'sitemap.xml')
+        sitemap.getroot().extend(version_sitemap.findall('*'))
+
+    index_url = ET.Element('url')
+    index_loc = ET.Element('loc')
+    index_loc.text = base_config['site_url']
+    index_url.append(index_loc)
+    index_lastmod = ET.Element('lastmod')
+    index_lastmod.text = date.today().isoformat()
+    index_url.append(index_lastmod)
+    index_changefreq = ET.Element('changefreq')
+    index_changefreq.text = 'daily'
+    index_url.append(index_changefreq)
+    sitemap.getroot().append(index_url)
+
+    sitemap.write(dest / 'sitemap.xml', encoding='UTF-8', xml_declaration=True)
+    run(['gzip', '-k', dest / 'sitemap.xml'], check=True)
+
+    # Write build info
+    dest.joinpath('.buildinfo').write_text(json.dumps(build_info))
+
+    # Write .nojekyll
+    dest.joinpath('.nojekyll').write_text('')
+
+    run(['git', 'add', '.'], cwd=dest, check=True)
+    run(['git', 'status'], cwd=dest, check=True)
+    run(['git', 'commit', '-m', 'Build docs'], cwd=dest, check=True)
+    run(['git', 'push'], cwd=dest, check=True)

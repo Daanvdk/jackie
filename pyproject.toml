@@ -17,7 +17,7 @@ pytest-cov = "^2.11.0"
 pytest-flake8 = "^1.0.7"
 mkdocs = "^1.1.2"
 mkdocs-material = "^6.2.8"
-mike = "^0.6.0"
+beautifulsoup4 = "^4.9.3"
 
 [tool.pytest.ini_options]
 addopts = "--flake8 --cov --cov-report=term-missing"

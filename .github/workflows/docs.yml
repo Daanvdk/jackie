@@ -35,6 +35,4 @@ jobs:
         git config user.email ""
 
     - name: Publish docs
-      run: |
-        git fetch --force origin gh-pages:gh-pages
-        poetry run mike deploy --push dev
+      run: ./manage-docs build dev
