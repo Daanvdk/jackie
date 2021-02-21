@@ -29,7 +29,7 @@ default_parser.add_argument('version', help='the version or alias to set as defa
 args = parser.parse_args()
 
 
-REPO = 'git@github.com:daanvdk/jackie.git'
+REPO = 'https://github.com/daanvdk/jackie.git'
 BRANCH = 'gh-pages'
 
 
