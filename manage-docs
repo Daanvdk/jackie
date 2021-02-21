@@ -230,7 +230,7 @@ with tempfile.TemporaryDirectory() as dest:
     sitemap.getroot().append(index_url)
 
     sitemap.write(dest / 'sitemap.xml', encoding='UTF-8', xml_declaration=True)
-    run(['gzip', '-k', dest / 'sitemap.xml'], check=True)
+    run(['gzip', '-fk', dest / 'sitemap.xml'], check=True)
 
     # Write build info
     dest.joinpath('.buildinfo').write_text(json.dumps(build_info))
