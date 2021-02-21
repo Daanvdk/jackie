@@ -120,7 +120,7 @@ window.addEventListener("DOMContentLoaded", function() {
                                 BASE_URL + "/" + versions[i].version +
                                 window.location.pathname.slice(VERSION_URL.length)
                             );
-                            if (versions[i].version === currentVersion.version) {
+                            if (active) {
                                 link.href = href;
                             } else {
                                 checkExists(link, href);
