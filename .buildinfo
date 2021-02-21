@@ -1,1 +1,1 @@
-{"versions": {"0.1": {"title": "0.1.0", "aliases": ["latest"]}}, "default": "0.1"}
+{"versions": {"0.1": {"title": "0.1.0", "aliases": ["latest"]}, "dev": {"title": "dev", "aliases": []}}, "default": "0.1"}
