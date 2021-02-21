@@ -116,10 +116,15 @@ window.addEventListener("DOMContentLoaded", function() {
                         list.appendChild(item);
 
                         if (window.location.pathname.startsWith(VERSION_URL)) {
-                            checkExists(link, (
+                            var href = (
                                 BASE_URL + "/" + versions[i].version +
                                 window.location.pathname.slice(VERSION_URL.length)
-                            ));
+                            );
+                            if (versions[i].version === currentVersion.version) {
+                                link.href = href;
+                            } else {
+                                checkExists(link, href);
+                            }
                         }
                     }
                     nav.appendChild(list);
