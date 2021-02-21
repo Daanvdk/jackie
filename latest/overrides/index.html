@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+<link href="{{ 'assets/stylesheets/index.css' | url }}" rel="stylesheet"/>
+{% endblock %}
+
+{% block content %}
+<h1>
+ A minimal
+ <a href="https://asgi.readthedocs.io/en/latest/">
+  ASGI
+ </a>
+ web framework
+</h1>
+<div id="index-columns">
+ <div>
+  <p>
+   Jackie is a framework that focusses on small easily integratable components in an asynchronous context. This means that views and/or routing written using Jackie can easily be used together with other ASGI software. It's minimal nature makes it easy to understand and mix and match with other components to create a complete web application ecosystem.
+  </p>
+  <div id="index-buttons">
+   {% set quick_start = nav|selectattr('title', 'equalto', 'Quick start')|first %}
+   <a class="md-button" href="{{ quick_start.children[0].url | url }}" title="{{ quick_start.title }}">
+    {{ quick_start.title }}
+   </a>
+   {% set reference = nav|selectattr('title', 'equalto', 'Reference')|first %}
+   <a class="md-button" href="{{ reference.children[0].url | url }}" title="{{ reference.title }}">
+    {{ reference.title }}
+   </a>
+  </div>
+ </div>
+ <div>
+  {{page.content}}
+ </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+  {% import "partials/language.html" as lang with context %}
+<!-- Application footer -->
+<footer class="md-footer">
+ <!-- Further information -->
+ <div class="md-footer-meta md-typeset">
+  <div class="md-footer-meta__inner md-grid">
+   <!-- Copyright and theme information -->
+   <div class="md-footer-copyright">
+    {% if config.copyright %}
+    <div class="md-footer-copyright__highlight">
+     {{ config.copyright }}
+    </div>
+    {% endif %}
+          Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+     Material for MkDocs
+    </a>
+   </div>
+   <!-- Social links -->
+   {% include "partials/social.html" %}
+  </div>
+ </div>
+</footer>
+{% endblock %}
