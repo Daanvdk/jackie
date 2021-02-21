@@ -1,7 +1,8 @@
+from datetime import datetime, timezone
 import pytest
 
 from jackie.router import Router
-from jackie.http import Response, TextResponse
+from jackie.http import Cookie, Response, TextResponse, JsonResponse
 from jackie.http.exceptions import Disconnect
 from jackie.client import Client
 from jackie.multipart import File
@@ -118,6 +119,28 @@ async def trace_view(request):
 @app.patch('/patch')
 async def patch_view(request):
     return TextResponse('patch')
+
+
+@app.post('/counter')
+async def counter_view(request):
+    count = int(request.cookies.get('count', '0')) + 1
+    return TextResponse(
+        f'count: {count}',
+        set_cookies=[Cookie('count', str(count), path='/counter')],
+    )
+
+
+@app.post('/counter/reset')
+async def counter_reset_view(request):
+    return TextResponse(
+        'reset count',
+        set_cookies=[Cookie('count', '', max_age=0)],
+    )
+
+
+@app.post('/cookies')
+async def cookies_view(request):
+    return JsonResponse(request.cookies)
 
 
 @pytest.mark.asyncio
@@ -460,3 +483,49 @@ async def test_websocket_double_accept():
     await socket.accepted()
     with pytest.raises(ValueError):
         await socket.accepted()
+
+
+@pytest.mark.asyncio
+async def test_cookies():
+    client = Client(app)
+
+    response = await client.post('/counter')
+    assert response.ok
+    assert await response.text() == 'count: 1'
+
+    response = await client.post('/counter')
+    assert response.ok
+    assert await response.text() == 'count: 2'
+
+    response = await client.post('/counter')
+    assert response.ok
+    assert await response.text() == 'count: 3'
+
+    response = await client.post('/counter/reset')
+    assert response.ok
+
+    response = await client.post('/counter')
+    assert response.ok
+    assert await response.text() == 'count: 1'
+
+    response = await client.post('/counter')
+    assert response.ok
+    assert await response.text() == 'count: 2'
+
+    response = await client.post('/counter')
+    assert response.ok
+    assert await response.text() == 'count: 3'
+
+    assert client.cookies['count'].value == '3'
+    epoch = datetime(1970, 1, 1, 0, 0, 0).astimezone(timezone.utc)
+    client.cookies['count'].expires = epoch
+
+    response = await client.post('/counter')
+    assert response.ok
+    assert await response.text() == 'count: 1'
+
+    assert client.cookies['count'].value == '1'
+
+    response = await client.post('/cookies')
+    assert response.ok
+    assert await response.json() == {}

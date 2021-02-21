@@ -1,6 +1,6 @@
 import pytest
 
-from jackie.http import FormRequest, JsonRequest, TextRequest
+from jackie.http import FormRequest, JsonRequest, Request, TextRequest
 from jackie.multipart import File
 
 
@@ -55,3 +55,11 @@ async def test_text_request():
     assert request.charset == 'UTF-8'
     assert await request.body() == b'foobar'
     assert await request.text() == 'foobar'
+
+
+def test_cookies():
+    request = Request(Cookie='foo=bar; bar="baz\\"qux"')
+    assert request.cookies == {
+        'foo': 'bar',
+        'bar': 'baz"qux',
+    }

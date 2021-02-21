@@ -1,11 +1,15 @@
 import asyncio
+from datetime import datetime, timezone, timedelta
 
 from .http import (
-    asgi_to_jackie, FormRequest, JsonRequest, Request, TextRequest, Socket,
+    asgi_to_jackie, Cookie, FormRequest, JsonRequest, Request, TextRequest,
+    Socket,
 )
 from .http.exceptions import Disconnect
 from .multidict import Headers
 from .bridge import bridge
+from .parse import parse_set_cookie
+from .serialize import serialize_cookies
 
 
 REQUEST_CLASSES = {
@@ -20,6 +24,37 @@ class Client:
 
     def __init__(self, app):
         self._view = asgi_to_jackie(app)
+        self.cookies = {}
+
+    def _get_cookies(self, path):
+        cookies = {}
+        now = datetime.now().astimezone(timezone.utc)
+        for name, cookie in list(self.cookies.items()):
+            if cookie.expires is not None and cookie.expires <= now:
+                self.cookies.pop(name)
+                continue
+            if cookie.path is not None and not path.startswith(cookie.path):
+                continue
+            cookies[cookie.name] = cookie.value
+        return serialize_cookies(cookies)
+
+    def _set_cookies(self, headers):
+        now = datetime.now().astimezone(timezone.utc)
+        for cookie in headers.getlist('Set-Cookie'):
+            name, value, params = parse_set_cookie(cookie)
+            try:
+                params['expires'] = (
+                    now + timedelta(seconds=params.pop('max_age'))
+                )
+            except KeyError:
+                pass
+            if 'expires' in params and params['expires'] <= now:
+                self.cookies.pop(name, None)
+                continue
+            else:
+                print('STILL VALID')
+            params.setdefault('same_site', 'lax')
+            self.cookies[name] = Cookie(name, value, **params)
 
     async def request(self, *args, **kwargs):
         request_cls = None
@@ -38,7 +73,10 @@ class Client:
             request_cls = Request
             request_body = b''
         request = request_cls(*args, body=request_body, **kwargs)
-        return await self._view(request)
+        request.headers.setdefault('Cookie', self._get_cookies(request.path))
+        response = await self._view(request)
+        self._set_cookies(response.headers)
+        return response
 
     async def get(self, *args, **kwargs):
         return await self.request(*args, method='GET', **kwargs)
@@ -82,16 +120,17 @@ class Client:
         async def view_from_res():
             return await get_in()
 
-        async def view_accept(headers=[], **kwargs):
+        async def view_accept(headers):
             nonlocal view_state
             if view_state != 'handshake':
                 raise ValueError(
                     'can only accept connection during handshake'
                 )
             view_state = 'open'
-            await view_to_res(('accept', Headers(headers, **kwargs)))
+            self._set_cookies(headers)
+            await view_to_res(('accept', headers))
 
-        async def view_close(code=1000):
+        async def view_close(code):
             nonlocal view_state
             if view_state == 'closed':
                 raise ValueError('connection already closed')
@@ -117,7 +156,7 @@ class Client:
 
         async def view_coro():
             try:
-                await self._view(Socket(
+                socket = Socket(
                     *args,
                     accept=view_accept,
                     close=view_close,
@@ -125,7 +164,11 @@ class Client:
                     send=view_send,
                     query=query,
                     headers=Headers(headers, **kwargs),
+                )
+                socket.headers.setdefault('Cookie', (
+                    self._get_cookies(socket.path)
                 ))
+                await self._view(socket)
             except Disconnect:
                 pass
 
@@ -166,10 +209,10 @@ class Client:
 
         res_state = 'handshake'
 
-        async def res_accept(*args, **kwargs):
+        async def res_accept(headers):
             raise ValueError('cannot call accept on reverse socket')
 
-        async def res_close(code=1000):
+        async def res_close(code):
             nonlocal res_state
             if res_state == 'closed':
                 raise ValueError('connection already closed')

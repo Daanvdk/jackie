@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from jackie.serialize import serialize_set_cookie
+from jackie.serialize import serialize_set_cookie, serialize_cookies
 
 
 def test_serialize_set_cookie():
@@ -110,4 +110,10 @@ def test_serialize_set_cookie_same_site_none():
     params = {'secure': False, 'http_only': False, 'same_site': 'none'}
     assert serialize_set_cookie(name, value, params) == (
         'cookie=123; SameSite=None'
+    )
+
+
+def test_serialize_cookies():
+    assert serialize_cookies({'foo': '123', 'bar': 'baz " qux'}) == (
+        'foo=123; bar="baz \\" qux"'
     )

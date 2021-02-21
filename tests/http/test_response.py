@@ -1,7 +1,8 @@
 import pytest
 
 from jackie.http import (
-    FormResponse, HtmlResponse, JsonResponse, RedirectResponse, TextResponse,
+    Cookie, FormResponse, HtmlResponse, JsonResponse, RedirectResponse,
+    Response, TextResponse,
 )
 from jackie.multipart import File
 
@@ -83,3 +84,14 @@ def test_ok():
     assert TextResponse(status=301).ok
     assert not TextResponse(status=400).ok
     assert not TextResponse(status=500).ok
+
+
+def test_set_cookies():
+    response = Response(set_cookies=[
+        Cookie('foo', 'bar'),
+        Cookie('bar', 'baz"qux'),
+    ])
+    assert response.headers.getlist('Set-Cookie') == [
+        'foo=bar',
+        'bar="baz\\"qux"',
+    ]

@@ -10,7 +10,8 @@ from .stream import Stream
 class Response(Stream):
 
     def __init__(
-        self, body=b'', *, status=200, content_type=None, headers=[], **kwargs,
+        self, body=b'', *, status=200, content_type=None, headers=[],
+        set_cookies=[], **kwargs,
     ):
         super().__init__(body)
         self.status = status
@@ -27,6 +28,9 @@ class Response(Stream):
 
         if content_type is not None:
             self.headers.setdefault('Content-Type', content_type)
+
+        for cookie in set_cookies:
+            self.headers.appendlist('Set-Cookie', cookie.serialize())
 
     def _get_content_type(self):
         return self.headers.get('Content-Type')

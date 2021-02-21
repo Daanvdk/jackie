@@ -2,6 +2,7 @@ import json
 
 from ..multidict import MultiDict, Headers
 from .. import multipart
+from ..parse import parse_cookies
 from .stream import Stream
 
 
@@ -24,6 +25,10 @@ class Request(Stream):
 
     def _get_content_type(self):
         return self.headers.get('Content-Type')
+
+    @property
+    def cookies(self):
+        return parse_cookies(self.headers.get('Cookie', ''))
 
 
 # Subclasses

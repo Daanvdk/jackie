@@ -7,7 +7,7 @@ DISALLOW = set(SPACE + CONTROL + '"')
 def serialize_value(value, allow=''):
     disallow = DISALLOW - set(allow)
 
-    if not any(char in disallow for char in value):
+    if value and not any(char in disallow for char in value):
         return value
 
     raw_chars = iter(value)
@@ -90,4 +90,15 @@ def serialize_set_cookie(name, value, params):
         parts.append('; SameSite=')
         parts.append(params['same_site'].capitalize())
 
+    return ''.join(parts)
+
+
+def serialize_cookies(cookies):
+    parts = []
+    for name, value in cookies.items():
+        if parts:
+            parts.append('; ')
+        parts.append(name)
+        parts.append('=')
+        parts.append(serialize_value(value))
     return ''.join(parts)

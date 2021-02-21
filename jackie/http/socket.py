@@ -1,6 +1,7 @@
 import json
 
 from ..multidict import MultiDict, Headers
+from ..parse import parse_cookies
 
 
 class Socket:
@@ -15,13 +16,26 @@ class Socket:
         self.query = MultiDict(query)
         self.headers = Headers(headers, **kwargs)
 
-        self.accept = accept
-        self.close = close
+        self._accept = accept
+        self._close = close
         self._receive = receive
         self._send = send
 
         self.router = None
         self.view_name = None
+
+    @property
+    def cookies(self):
+        return parse_cookies(self.headers.get('Cookie', ''))
+
+    async def accept(self, headers=[], set_cookies=[], **kwargs):
+        headers = Headers(headers, **kwargs)
+        for cookie in set_cookies:
+            headers.appendlist('Set-Cookie', cookie.serialize())
+        await self._accept(headers)
+
+    async def close(self, code=1000):
+        await self._close(code)
 
     async def receive_bytes(self):
         message = await self._receive()
