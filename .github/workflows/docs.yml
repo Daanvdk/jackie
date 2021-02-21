@@ -32,8 +32,8 @@ jobs:
 
     - name: Config git
       run: |
-        git config user.name github-actions
-        git config user.email ""
+        git config --global user.name github-actions
+        git config --global user.email ""
 
     - name: Publish docs
       run: poetry run ./manage-docs build dev
