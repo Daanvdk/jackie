@@ -36,4 +36,4 @@ jobs:
         git config user.email ""
 
     - name: Publish docs
-      run: ./manage-docs build dev
+      run: poetry run ./manage-docs build dev
