@@ -32,8 +32,10 @@ jobs:
 
     - name: Config git
       run: |
-        git config --global user.name github-actions
-        git config --global user.email ""
+        git config --global user.name "Github Actions Bot"
+        git config --global user.email "<>"
 
     - name: Publish docs
       run: poetry run ./manage-docs build dev
+      env:
+        DOCS_REPO: https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/daanvdk/jackie.git
