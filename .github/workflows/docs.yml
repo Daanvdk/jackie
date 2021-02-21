@@ -8,7 +8,7 @@ on:
       - .github/workflows/docs.yml
       - mkdocs.yml
       - docs/**
-      - ./manage-docs
+      - manage-docs
 
 jobs:
   docs:
