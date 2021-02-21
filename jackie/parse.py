@@ -5,7 +5,7 @@ SPACE = ' \t'
 CONTROL = '()<>@,;:\\/[]?={}'
 
 
-def lex_header(content):
+def lex(content):
     if isinstance(content, bytes):
         content = content.decode()
 
@@ -55,7 +55,7 @@ def parser(parse):
     @functools.wraps(parse)
     def wrapped_parse(content, *args, **kwargs):
         if isinstance(content, (str, bytes)):
-            content = list(lex_header(content)), 0
+            content = list(lex(content)), 0
             content, result = parse(content, *args, **kwargs)
             parse_token(content, 'end')
             return result
@@ -120,6 +120,7 @@ def parse_content_disposition(content):
     return content, (value, params)
 
 
+@parser
 def parse_media_type(content):
     content, type_ = parse_value(content)
     content, _ = parse_token(content, '/')

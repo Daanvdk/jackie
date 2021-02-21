@@ -1,6 +1,6 @@
 import pytest
 
-from jackie.header import parse_content_disposition, parse_content_type
+from jackie.parse import parse_content_disposition, parse_content_type
 
 
 def test_parse_content_disposition():

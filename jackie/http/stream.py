@@ -4,7 +4,7 @@ import json
 import urllib.parse
 
 from ..multidict import MultiDict
-from ..header import parse_content_type
+from ..parse import parse_content_type
 from .. import multipart
 
 

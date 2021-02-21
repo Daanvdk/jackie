@@ -3,7 +3,7 @@ from io import BytesIO
 import os
 
 from .multidict import MultiDict
-from .header import parse_content_disposition, parse_content_type
+from .parse import parse_content_disposition, parse_content_type
 
 
 File = namedtuple('File', ['name', 'content_type', 'content'])
