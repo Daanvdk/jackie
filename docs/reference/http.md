@@ -1,14 +1,30 @@
 This module provides the building blocks to work with HTTP in jackie.
 
 ## `Request`
-`class Request(path='/', *, method='GET', body=b'', query=[], headers=[], **headers)`
+`class Request(path='/', *, form, method='GET', query=[], headers=[], **headers)`
+`class Request(path='/', *, json, method='GET', query=[], headers=[], **headers)`
+`class Request(path='/', *, text, method='GET', query=[], headers=[], **headers)`
+`class Request(path='/', *, body=b'', method='GET', query=[], headers=[], **headers)`
 
 Represents a request from a client to the application.
 
 Both `query` and `headers` expect a `dict`, an iterable of 2-tuples or a
 [`MultiDict`](multidict.md#multidict).
 
-`body` can be `bytes`, an iterable of `bytes` or an async iterable of `bytes`.
+There are 4 parameters that can describe the body of the request. `form`,
+`json`, `text` or `body`. At most one of these can be supplied.
+
+`form` must be a `dict`, an iterable of 2-tuples or a
+[`MultiDict`](multidict.md#multidict) where the keys are strings and the values
+are either strings or a [`File`](multipart.md#file).
+
+`json` must be data that is JSON-encodable.
+
+`text` must be a str.
+
+`body` must be `bytes`, an iterable of `bytes` or an async iterable of `bytes`.
+
+If none of these 4 parameters is supplied `body` defaults to `b''`.
 
 This class implements [`Stream`](http.md#stream).
 
@@ -26,51 +42,43 @@ A [`Headers`](multidict.md#headers) object containing all request headers.
 #### `cookies`
 A dict mapping `str` to `str` containing the cookies sent by the client.
 
-## `FormRequest`
-`class FormRequest(path='/', body={}, boundary=None, *, method='GET', query=[], headers=[], **headers)`
-
-A subclass of [`Request`](http.md#request) that encodes the provided body as
-`multipart/form-data` and sets the appropriate headers.
-
-Body must be a `dict`, an iterable of 2-tuples or a 
-[`MultiDict`](multidict.md#multidict) where the keys are strings and the values
-are either strings or a [`File`](multipart.md#file).
-
-If no `boundary` is supplied a `boundary` is automatically generated.
-
-## `JsonRequest`
-`class JsonRequest(path='/', body={}, *, method='GET', query=[], headers=[], **headers)`
-
-A subclass of [`Request`](http.md#request) that encodes the provided body as
-`application/json` and sets the appropriate headers.
-
-Body must be data that is JSON-encodable.
-
-## `TextRequest`
-`class TextRequest(path='/', body='', *, method='GET', query=[], headers=[], **headers)`
-
-A subclass of [`Request`](http.md#request) that encodes the provided body as
-`text/plain` and sets the appropriate headers.
-
-Body must be a string.
-
 ## `Response`
-`class Response(body=b'', *, status=200, content_type=None, charset=None, boundary=None, set_cookies=[], headers=[], **headers)`
+`class Response(*, form, status=200, content_type=None, set_cookies=[], headers=[], **headers)`  
+`class Response(*, json, status=200, content_type=None, set_cookies=[], headers=[], **headers)`  
+`class Response(*, text, status=200, content_type=None, set_cookies=[], headers=[], **headers)`  
+`class Response(*, html, status=200, content_type=None, set_cookies=[], headers=[], **headers)`  
+`class Response(*, redirect, status=304, content_type=None, set_cookies=[], headers=[], **headers)`  
+`class Response(*, body=b'', status=200, content_type=NoneNone, set_cookies=[], headers=[], **headers)`
 
 Represents a response from the application to a client.
 
 Both `query` and `headers` expect a `dict`, an iterable of 2-tuples or a
 [`MultiDict`](multidict.md#multidict).
 
-`body` can be `bytes`, an iterable of `bytes` or an async iterable of `bytes`.
+`content_type` sets the `Content-Type` header.
+
+There are 6 parameters that can describe the body of the response. `form`,
+`json`, `text`, `html`, `redirect` or `body`. At most one of these can be supplied.
+
+`form` must be a `dict`, an iterable of 2-tuples or a
+[`MultiDict`](multidict.md#multidict) where the keys are strings and the values
+are either strings or a [`File`](multipart.md#file).
+
+`json` must be data that is JSON-encodable.
+
+`text` must be a str.
+
+`html` must be a str containing an HTML document.
+
+`redirect` must be a str with the location to redirect to. Note that when
+`redirect` is provided the default `status` is `304` instead of `200`.
+
+`body` must be `bytes`, an iterable of `bytes` or an async iterable of `bytes`.
+
+If none of these 6 parameters is supplied `body` defaults to `b''`.
 
 `set_cookies` expects an iterable of [`Cookie`](http.md#cookie) that will be
 added as `Set-Cookie` response headers.
-
-`content_type`, `charset` and `boundary` together determine the `Content-Type`
-header. If `content_type` starts with `'multipart/'` we expect `boundary` to be
-present and add it to the `Content-Type`, otherwise `charset` gets added if
-present.
 
 This class implements [`Stream`](http.md#stream).
 
@@ -84,48 +92,6 @@ A [`Headers`](multidict.md#headers) object containing all response headers.
 #### `ok`
 A boolean indicating whether the response is considered 'ok' according to the
 HTTP status code. This is implemented as `status < 400`.
-
-## `FormResponse`
-`class FormResponse(body={}, boundary=None, *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)`
-
-A subclass of [`Response`](http.md#response) that encodes the provided body as
-`multipart/form-data` and sets the appropriate headers.
-
-Body must be a `dict`, an iterable of 2-tuples or a 
-[`MultiDict`](multidict.md#multidict) where the keys are strings and the values
-are either strings or a [`File`](multipart.md#file).
-
-If no `boundary` is supplied a `boundary` is automatically generated.
-
-## `HtmlResponse`
-`class HtmlResponse(body='', *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)`
-
-A subclass of [`Response`](http.md#response) that encodes the provided body as
-`text/html` and sets the appropriate headers.
-
-Body must be a string.
-
-## `JsonResponse`
-`class JsonResponse(body={}, *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)`
-
-A subclass of [`Response`](http.md#response) that encodes the provided body as
-`application/json` and sets the appropriate headers.
-
-Body must be data that is JSON-encodable.
-
-## `RedirectResponse`
-`class RedirectResponse(location, *, status=304, content_type=None, charset=None, set_cookies=[], headers=[], **headers)`
-
-A subclass of [`Response`](http.md#response) that represents a redirect to the
-provided `location`.
-
-## `TextResponse`
-`class Response(body='', *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)`
-
-A subclass of [`Response`](http.md#response) that encodes the provided body as
-`text/plain` and sets the appropriate headers.
-
-Body must be a string.
 
 ## `Stream`
 `class Stream(chunks=b'')`

@@ -1,5 +1,5 @@
 from jackie.router import Router
-from jackie.http import HtmlResponse, Response
+from jackie.http import Response
 
 
 app = Router()
@@ -7,7 +7,7 @@ app = Router()
 
 @app.get('/')
 async def form(request):
-    return HtmlResponse(
+    return Response(html=(
         '<!doctype html>\n'
         '<html lang="en">\n'
         '  <head>\n'
@@ -21,13 +21,13 @@ async def form(request):
         '    </form>\n'
         '  </body>\n'
         '</html>\n'
-    )
+    ))
 
 
 @app.post('/file_upload')
 async def file_upload(request):
     form = await request.form()
     return Response(
-        form['file'].content,
+        body=form['file'].content,
         content_type=form['file'].content_type,
     )
