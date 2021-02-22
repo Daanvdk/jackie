@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 import pytest
 
 from jackie.router import Router
-from jackie.http import Cookie, Response, TextResponse, JsonResponse
+from jackie.http import Cookie, Response
 from jackie.http.exceptions import Disconnect
 from jackie.client import Client
 from jackie.multipart import File
@@ -14,12 +14,12 @@ app = Router()
 @app.get('/')
 async def hello_world(request):
     name = request.query.get('name', 'World')
-    return TextResponse(f'Hello, {name}!')
+    return Response(text=f'Hello, {name}!')
 
 
 @app.get('/echo')
 async def echo(request):
-    return Response(request.chunks(), headers=request.headers)
+    return Response(body=request.chunks(), headers=request.headers)
 
 
 @app.websocket('/echo')
@@ -78,69 +78,69 @@ async def double_accept_websocket(socket):
 
 @app.get('/get')
 async def get_view(request):
-    return TextResponse('get')
+    return Response(text='get')
 
 
 @app.head('/head')
 async def head_view(request):
-    return TextResponse('head')
+    return Response(text='head')
 
 
 @app.post('/post')
 async def post_view(request):
-    return TextResponse('post')
+    return Response(text='post')
 
 
 @app.put('/put')
 async def put_view(request):
-    return TextResponse('put')
+    return Response(text='put')
 
 
 @app.delete('/delete')
 async def delete_view(request):
-    return TextResponse('delete')
+    return Response(text='delete')
 
 
 @app.connect('/connect')
 async def connect_view(request):
-    return TextResponse('connect')
+    return Response(text='connect')
 
 
 @app.options('/options')
 async def options_view(request):
-    return TextResponse('options')
+    return Response(text='options')
 
 
 @app.trace('/trace')
 async def trace_view(request):
-    return TextResponse('trace')
+    return Response(text='trace')
 
 
 @app.patch('/patch')
 async def patch_view(request):
-    return TextResponse('patch')
+    return Response(text='patch')
 
 
 @app.post('/counter')
 async def counter_view(request):
     count = int(request.cookies.get('count', '0')) + 1
-    return TextResponse(
-        f'count: {count}',
+    return Response(
+        text=f'count: {count}',
         set_cookies=[Cookie('count', str(count), path='/counter')],
     )
 
 
 @app.post('/counter/reset')
 async def counter_reset_view(request):
-    return TextResponse(
-        'reset count',
+    return Response(
+        text='reset count',
         set_cookies=[Cookie('count', '', max_age=0)],
     )
 
 
 @app.post('/cookies')
 async def cookies_view(request):
-    return JsonResponse(request.cookies)
+    return Response(json=request.cookies)
 
 
 @pytest.mark.asyncio

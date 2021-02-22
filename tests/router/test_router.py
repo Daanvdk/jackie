@@ -3,7 +3,7 @@ import asyncio
 import pytest
 
 from jackie.router import Router
-from jackie.http import asgi_to_jackie, JsonResponse, Request, TextResponse
+from jackie.http import asgi_to_jackie, Request, Response
 from jackie.http.exceptions import Disconnect
 
 
@@ -14,28 +14,28 @@ app = Router()
 
 @app.get('/post/', name='post:list')
 async def post_list(request):
-    return TextResponse('post list')
+    return Response(text='post list')
 
 
 @app.post('/post/', name='post:create')
 async def post_create(request):
-    return TextResponse('post create')
+    return Response(text='post create')
 
 
 @app.get('/post/<post_id:int>/', name='post:detail')
 async def post_detail(request, post_id):
-    return TextResponse(f'post detail {post_id}')
+    return Response(text=f'post detail {post_id}')
 
 
 @app.put('/post/<post_id:int>/', name='post:update')
 @app.patch('/post/<post_id:int>/')
 async def post_update(request, post_id):
-    return TextResponse(f'post update {post_id}')
+    return Response(text=f'post update {post_id}')
 
 
 @app.delete('/post/<post_id:int>/', name='post:delete')
 async def post_delete(request, post_id):
-    return TextResponse(f'post delete {post_id}')
+    return Response(text=f'post delete {post_id}')
 
 
 # User resource (included urls)
@@ -45,12 +45,12 @@ user_app = Router()
 
 @user_app.get('', name='list')
 async def user_list(request):
-    return TextResponse('user list')
+    return Response(text='user list')
 
 
 @user_app.post('', name='create')
 async def user_create(request):
-    return TextResponse('user create')
+    return Response(text='user create')
 
 
 # Include in the middle so we can verify that routes before and after include
@@ -60,18 +60,18 @@ app.include('/user/', user_app, name='user')
 
 @user_app.get('<user_id:int>/', name='detail')
 async def user_detail(request, user_id):
-    return TextResponse(f'user detail {user_id}')
+    return Response(text=f'user detail {user_id}')
 
 
 @user_app.put('<user_id:int>/', name='update')
 @user_app.patch('<user_id:int>/', name='update')
 async def user_update(request, user_id):
-    return TextResponse(f'user update {user_id}')
+    return Response(text=f'user update {user_id}')
 
 
 @user_app.delete('<user_id:int>/', name='delete')
 async def user_delete(request, user_id):
-    return TextResponse(f'user delete {user_id}')
+    return Response(text=f'user delete {user_id}')
 
 
 # Easier to test
@@ -162,13 +162,13 @@ async def test_custom_error_pages():
 
     @router.get('/api/')
     async def foo(request):
-        return JsonResponse({'foo': 'bar'})
+        return Response(json={'foo': 'bar'})
 
     @router.not_found
     async def not_found(request):
-        return JsonResponse(
+        return Response(
             status=404,
-            body={
+            json={
                 'code': 'not_found',
                 'message': 'Not Found',
             },
@@ -176,9 +176,9 @@ async def test_custom_error_pages():
 
     @router.method_not_allowed
     async def method_not_allowed(request, methods):
-        return JsonResponse(
+        return Response(
             status=405,
-            body={
+            json={
                 'code': 'method_not_allowed',
                 'message': 'Method Not Allowed',
             },
@@ -297,39 +297,39 @@ async def test_all_methods():
 
     @app.get('/')
     async def get_view(request):
-        return TextResponse('get')
+        return Response(text='get')
 
     @app.head('/')
     async def head_view(request):
-        return TextResponse('head')
+        return Response(text='head')
 
     @app.post('/')
     async def post_view(request):
-        return TextResponse('post')
+        return Response(text='post')
 
     @app.put('/')
     async def put_view(request):
-        return TextResponse('put')
+        return Response(text='put')
 
     @app.delete('/')
     async def delete_view(request):
-        return TextResponse('delete')
+        return Response(text='delete')
 
     @app.connect('/')
     async def connect_view(request):
-        return TextResponse('connect')
+        return Response(text='connect')
 
     @app.options('/')
     async def options_view(request):
-        return TextResponse('options')
+        return Response(text='options')
 
     @app.trace('/')
     async def trace_view(request):
-        return TextResponse('trace')
+        return Response(text='trace')
 
     @app.patch('/')
     async def patch_view(request):
-        return TextResponse('patch')
+        return Response(text='patch')
 
     view = asgi_to_jackie(app)
 
@@ -469,11 +469,11 @@ async def test_middleware():
 
     @router.get('/foo/')
     async def foo(request):
-        return TextResponse('foo')
+        return Response(text='foo')
 
     @router.get('/foo/<param>/')
     async def bar(request, param):
-        return TextResponse(param)
+        return Response(text=param)
 
     @router.middleware
     def prefix_content(get_response):
@@ -484,7 +484,7 @@ async def test_middleware():
             except KeyError:
                 pass
             else:
-                response = TextResponse(prefix + await response.text())
+                response = Response(text=prefix + await response.text())
             return response
         return view
 

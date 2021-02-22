@@ -1,15 +1,12 @@
 import pytest
 
-from jackie.http import (
-    Cookie, FormResponse, HtmlResponse, JsonResponse, RedirectResponse,
-    Response, TextResponse,
-)
+from jackie.http import Response, Cookie
 from jackie.multipart import File
 
 
 @pytest.mark.asyncio()
 async def test_form_request():
-    response = FormResponse({
+    response = Response(form={
         'foo': '123',
         'bar': 'multi\nline\nstring',
         'baz': File('baz.png', 'image/png', b'pngcontent'),
@@ -44,7 +41,7 @@ async def test_form_request():
 
 @pytest.mark.asyncio
 async def test_html_response():
-    response = HtmlResponse('<p>foobar</p>')
+    response = Response(html='<p>foobar</p>')
     assert response.status == 200
     assert response.headers['Content-Type'] == 'text/html; charset=UTF-8'
     assert await response.body() == b'<p>foobar</p>'
@@ -53,7 +50,7 @@ async def test_html_response():
 
 @pytest.mark.asyncio
 async def test_json_response():
-    response = JsonResponse({'foo': 'bar'})
+    response = Response(json={'foo': 'bar'})
     assert response.status == 200
     assert response.headers['Content-Type'] == (
         'application/json; charset=UTF-8'
@@ -64,7 +61,7 @@ async def test_json_response():
 
 @pytest.mark.asyncio
 async def test_redirect_response():
-    response = RedirectResponse('https://www.foobar.test/')
+    response = Response(redirect='https://www.foobar.test/')
     assert response.status == 304
     assert response.headers['Location'] == 'https://www.foobar.test/'
     assert await response.body() == b''
@@ -72,18 +69,23 @@ async def test_redirect_response():
 
 @pytest.mark.asyncio
 async def test_text_response():
-    response = TextResponse('foobar')
+    response = Response(text='foobar')
     assert response.status == 200
     assert response.headers['Content-Type'] == 'text/plain; charset=UTF-8'
     assert await response.body() == b'foobar'
     assert await response.text() == 'foobar'
 
 
+def test_multi():
+    with pytest.raises(ValueError):
+        Response(text='foobar', body=b'foobar')
+
+
 def test_ok():
-    assert TextResponse(status=200).ok
-    assert TextResponse(status=301).ok
-    assert not TextResponse(status=400).ok
-    assert not TextResponse(status=500).ok
+    assert Response(status=200).ok
+    assert Response(status=301).ok
+    assert not Response(status=400).ok
+    assert not Response(status=500).ok
 
 
 def test_set_cookies():
