@@ -1,23 +1,12 @@
 import asyncio
 from datetime import datetime, timezone, timedelta
 
-from .http import (
-    asgi_to_jackie, Cookie, FormRequest, JsonRequest, Request, TextRequest,
-    Socket,
-)
+from .http import asgi_to_jackie, Cookie, Request, Socket
 from .http.exceptions import Disconnect
 from .multidict import Headers
 from .bridge import bridge
 from .parse import parse_set_cookie
 from .serialize import serialize_cookies
-
-
-REQUEST_CLASSES = {
-    'form': FormRequest,
-    'json': JsonRequest,
-    'text': TextRequest,
-    'body': Request,
-}
 
 
 class Client:
@@ -57,22 +46,7 @@ class Client:
             self.cookies[name] = Cookie(name, value, **params)
 
     async def request(self, *args, **kwargs):
-        request_cls = None
-        request_body = None
-        for key, cls in REQUEST_CLASSES.items():
-            try:
-                body = kwargs.pop(key)
-            except KeyError:
-                continue
-            if request_cls is None:
-                request_cls = cls
-                request_body = body
-            else:
-                raise ValueError('multiple body types supplied')
-        if request_cls is None:
-            request_cls = Request
-            request_body = b''
-        request = request_cls(*args, body=request_body, **kwargs)
+        request = Request(*args, **kwargs)
         request.headers.setdefault('Cookie', self._get_cookies(request.path))
         response = await self._view(request)
         self._set_cookies(response.headers)
