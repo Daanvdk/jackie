@@ -6,6 +6,12 @@ application using a simple API.
 
 Initializes a client for the provided ASGI app `app`.
 
+### Attributes
+#### `cookies`
+A dict mapping `str` to [`Cookie`](http.md#cookie) containing the cookies set
+by the app. These cookies are sent as a `Cookie`-header on requests and
+modified by `Set-Cookie`-headers on responses.
+
 ### Methods
 #### `request`
 `coroutine request(path='/', *, form, method='GET', query=[], headers=[], **headers)`  
