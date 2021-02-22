@@ -259,6 +259,11 @@
                   Added
                  </a>
                 </li>
+                <li class="md-nav__item">
+                 <a class="md-nav__link" href="#removed">
+                  Removed
+                 </a>
+                </li>
                </ul>
               </nav>
              </li>
@@ -330,6 +335,11 @@
              <li class="md-nav__item">
               <a class="md-nav__link" href="#added">
                Added
+              </a>
+             </li>
+             <li class="md-nav__item">
+              <a class="md-nav__link" href="#removed">
+               Removed
               </a>
              </li>
             </ul>
@@ -496,6 +506,132 @@ modified by
          </code>
          method that sets a
 view for when no view could be found for a websocket connection.
+        </li>
+        <li>
+         <code>
+          jackie.router.Request
+         </code>
+         now can also take
+         <code>
+          form
+         </code>
+         ,
+         <code>
+          json
+         </code>
+         or
+         <code>
+          text
+         </code>
+         to specify
+the body of the request.
+        </li>
+        <li>
+         <code>
+          jackie.router.Response
+         </code>
+         now can also take
+         <code>
+          form
+         </code>
+         ,
+         <code>
+          json
+         </code>
+         ,
+         <code>
+          text
+         </code>
+         ,
+         <code>
+          html
+         </code>
+         or
+         <code>
+          redirect
+         </code>
+         to specify the body of the response.
+        </li>
+       </ul>
+       <h3 id="removed">
+        Removed
+       </h3>
+       <ul>
+        <li>
+         <code>
+          jackie.http.FormRequest
+         </code>
+         ,
+         <code>
+          jackie.http.JsonRequest
+         </code>
+         and
+         <code>
+          jackie.http.TextRequest
+         </code>
+         were removed in favor of the new
+         <code>
+          form
+         </code>
+         ,
+         <code>
+          json
+         </code>
+         and
+         <code>
+          text
+         </code>
+         parameters on
+         <code>
+          jackie.http.Request
+         </code>
+         .
+        </li>
+        <li>
+         <code>
+          jackie.http.FormResponse
+         </code>
+         ,
+         <code>
+          jackie.http.JsonRespone
+         </code>
+         ,
+         <code>
+          jackie.http.HtmlResponse
+         </code>
+         ,
+         <code>
+          jackie.http.RedirectResponse
+         </code>
+         and
+         <code>
+          jackie.http.TextRequest
+         </code>
+         were removed in favor of the new
+         <code>
+          form
+         </code>
+         ,
+         <code>
+          json
+         </code>
+         ,
+         <code>
+          html
+         </code>
+         ,
+         <code>
+          redirect
+         </code>
+         and
+         <code>
+          text
+         </code>
+         parameters on
+         <code>
+          jackie.http.Response
+         </code>
+         .
         </li>
        </ul>
        <h2 id="010-2021-02-16">

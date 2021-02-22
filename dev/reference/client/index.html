@@ -569,69 +569,11 @@ modified by
 request described by the arguments.
        </p>
        <p>
-        Both
-        <code>
-         query
-        </code>
-        and
-        <code>
-         headers
-        </code>
-        expect a
-        <code>
-         dict
-        </code>
-        , an iterable of 2-tuples or a
-        <a href="../multidict/#multidict">
-         <code>
-          MultiDict
-         </code>
-        </a>
-        .
-       </p>
-       <p>
-        There are 4 parameters that can describe the body of the request.
-        <code>
-         form
-        </code>
-        ,
-        <code>
-         json
-        </code>
-        ,
-        <code>
-         text
-        </code>
-        or
-        <code>
-         body
-        </code>
-        . At most one of these can be supplied and they
-determine whether the request will be a
-        <a href="../http/#formrequest">
-         <code>
-          FormRequest
-         </code>
-        </a>
-        ,
-        <a href="../http/#jsonrequest">
-         <code>
-          JsonRequest
-         </code>
-        </a>
-        ,
-        <a href="../http/#textrequest">
-         <code>
-          TextRequest
-         </code>
-        </a>
-        or
+        See
         <a href="../http/#request">
-         <code>
-          Request
-         </code>
+         Request
         </a>
-        respectively.
+        for an explanation of the parameters.
        </p>
        <h4 id="get">
         <code>

@@ -264,21 +264,6 @@
                  </nav>
                 </li>
                 <li class="md-nav__item">
-                 <a class="md-nav__link" href="#formrequest">
-                  FormRequest
-                 </a>
-                </li>
-                <li class="md-nav__item">
-                 <a class="md-nav__link" href="#jsonrequest">
-                  JsonRequest
-                 </a>
-                </li>
-                <li class="md-nav__item">
-                 <a class="md-nav__link" href="#textrequest">
-                  TextRequest
-                 </a>
-                </li>
-                <li class="md-nav__item">
                  <a class="md-nav__link" href="#response">
                   Response
                  </a>
@@ -310,31 +295,6 @@
                    </li>
                   </ul>
                  </nav>
-                </li>
-                <li class="md-nav__item">
-                 <a class="md-nav__link" href="#formresponse">
-                  FormResponse
-                 </a>
-                </li>
-                <li class="md-nav__item">
-                 <a class="md-nav__link" href="#htmlresponse">
-                  HtmlResponse
-                 </a>
-                </li>
-                <li class="md-nav__item">
-                 <a class="md-nav__link" href="#jsonresponse">
-                  JsonResponse
-                 </a>
-                </li>
-                <li class="md-nav__item">
-                 <a class="md-nav__link" href="#redirectresponse">
-                  RedirectResponse
-                 </a>
-                </li>
-                <li class="md-nav__item">
-                 <a class="md-nav__link" href="#textresponse">
-                  TextResponse
-                 </a>
                 </li>
                 <li class="md-nav__item">
                  <a class="md-nav__link" href="#stream">
@@ -687,21 +647,6 @@
            </nav>
           </li>
           <li class="md-nav__item">
-           <a class="md-nav__link" href="#formrequest">
-            FormRequest
-           </a>
-          </li>
-          <li class="md-nav__item">
-           <a class="md-nav__link" href="#jsonrequest">
-            JsonRequest
-           </a>
-          </li>
-          <li class="md-nav__item">
-           <a class="md-nav__link" href="#textrequest">
-            TextRequest
-           </a>
-          </li>
-          <li class="md-nav__item">
            <a class="md-nav__link" href="#response">
             Response
            </a>
@@ -733,31 +678,6 @@
              </li>
             </ul>
            </nav>
-          </li>
-          <li class="md-nav__item">
-           <a class="md-nav__link" href="#formresponse">
-            FormResponse
-           </a>
-          </li>
-          <li class="md-nav__item">
-           <a class="md-nav__link" href="#htmlresponse">
-            HtmlResponse
-           </a>
-          </li>
-          <li class="md-nav__item">
-           <a class="md-nav__link" href="#jsonresponse">
-            JsonResponse
-           </a>
-          </li>
-          <li class="md-nav__item">
-           <a class="md-nav__link" href="#redirectresponse">
-            RedirectResponse
-           </a>
-          </li>
-          <li class="md-nav__item">
-           <a class="md-nav__link" href="#textresponse">
-            TextResponse
-           </a>
           </li>
           <li class="md-nav__item">
            <a class="md-nav__link" href="#stream">
@@ -1029,7 +949,16 @@
        </h2>
        <p>
         <code>
-         class Request(path='/', *, method='GET', body=b'', query=[], headers=[], **headers)
+         class Request(path='/', *, form, method='GET', query=[], headers=[], **headers)
+        </code>
+        <code>
+         class Request(path='/', *, json, method='GET', query=[], headers=[], **headers)
+        </code>
+        <code>
+         class Request(path='/', *, text, method='GET', query=[], headers=[], **headers)
+        </code>
+        <code>
+         class Request(path='/', *, body=b'', method='GET', query=[], headers=[], **headers)
         </code>
        </p>
        <p>
@@ -1057,10 +986,64 @@
         .
        </p>
        <p>
+        There are 4 parameters that can describe the body of the request.
+        <code>
+         form
+        </code>
+        ,
+        <code>
+         json
+        </code>
+        ,
+        <code>
+         text
+        </code>
+        or
         <code>
          body
         </code>
-        can be
+        . At most one of these can be supplied.
+       </p>
+       <p>
+        <code>
+         form
+        </code>
+        must be a
+        <code>
+         dict
+        </code>
+        , an iterable of 2-tuples or a
+        <a href="../multidict/#multidict">
+         <code>
+          MultiDict
+         </code>
+        </a>
+        where the keys are strings and the values
+are either strings or a
+        <a href="../multipart/#file">
+         <code>
+          File
+         </code>
+        </a>
+        .
+       </p>
+       <p>
+        <code>
+         json
+        </code>
+        must be data that is JSON-encodable.
+       </p>
+       <p>
+        <code>
+         text
+        </code>
+        must be a str.
+       </p>
+       <p>
+        <code>
+         body
+        </code>
+        must be
         <code>
          bytes
         </code>
@@ -1071,6 +1054,17 @@
         or an async iterable of
         <code>
          bytes
+        </code>
+        .
+       </p>
+       <p>
+        If none of these 4 parameters is supplied
+        <code>
+         body
+        </code>
+        defaults to
+        <code>
+         b''
         </code>
         .
        </p>
@@ -1133,112 +1127,6 @@ uppercase.
         </code>
         containing the cookies sent by the client.
        </p>
-       <h2 id="formrequest">
-        <code>
-         FormRequest
-        </code>
-       </h2>
-       <p>
-        <code>
-         class FormRequest(path='/', body={}, boundary=None, *, method='GET', query=[], headers=[], **headers)
-        </code>
-       </p>
-       <p>
-        A subclass of
-        <a href="./#request">
-         <code>
-          Request
-         </code>
-        </a>
-        that encodes the provided body as
-        <code>
-         multipart/form-data
-        </code>
-        and sets the appropriate headers.
-       </p>
-       <p>
-        Body must be a
-        <code>
-         dict
-        </code>
-        , an iterable of 2-tuples or a
-        <a href="../multidict/#multidict">
-         <code>
-          MultiDict
-         </code>
-        </a>
-        where the keys are strings and the values
-are either strings or a
-        <a href="../multipart/#file">
-         <code>
-          File
-         </code>
-        </a>
-        .
-       </p>
-       <p>
-        If no
-        <code>
-         boundary
-        </code>
-        is supplied a
-        <code>
-         boundary
-        </code>
-        is automatically generated.
-       </p>
-       <h2 id="jsonrequest">
-        <code>
-         JsonRequest
-        </code>
-       </h2>
-       <p>
-        <code>
-         class JsonRequest(path='/', body={}, *, method='GET', query=[], headers=[], **headers)
-        </code>
-       </p>
-       <p>
-        A subclass of
-        <a href="./#request">
-         <code>
-          Request
-         </code>
-        </a>
-        that encodes the provided body as
-        <code>
-         application/json
-        </code>
-        and sets the appropriate headers.
-       </p>
-       <p>
-        Body must be data that is JSON-encodable.
-       </p>
-       <h2 id="textrequest">
-        <code>
-         TextRequest
-        </code>
-       </h2>
-       <p>
-        <code>
-         class TextRequest(path='/', body='', *, method='GET', query=[], headers=[], **headers)
-        </code>
-       </p>
-       <p>
-        A subclass of
-        <a href="./#request">
-         <code>
-          Request
-         </code>
-        </a>
-        that encodes the provided body as
-        <code>
-         text/plain
-        </code>
-        and sets the appropriate headers.
-       </p>
-       <p>
-        Body must be a string.
-       </p>
        <h2 id="response">
         <code>
          Response
@@ -1246,7 +1134,27 @@ are either strings or a
        </h2>
        <p>
         <code>
-         class Response(body=b'', *, status=200, content_type=None, charset=None, boundary=None, set_cookies=[], headers=[], **headers)
+         class Response(*, form, status=200, content_type=None, set_cookies=[], headers=[], **headers)
+        </code>
+        <br/>
+        <code>
+         class Response(*, json, status=200, content_type=None, set_cookies=[], headers=[], **headers)
+        </code>
+        <br/>
+        <code>
+         class Response(*, text, status=200, content_type=None, set_cookies=[], headers=[], **headers)
+        </code>
+        <br/>
+        <code>
+         class Response(*, html, status=200, content_type=None, set_cookies=[], headers=[], **headers)
+        </code>
+        <br/>
+        <code>
+         class Response(*, redirect, status=304, content_type=None, set_cookies=[], headers=[], **headers)
+        </code>
+        <br/>
+        <code>
+         class Response(*, body=b'', status=200, content_type=NoneNone, set_cookies=[], headers=[], **headers)
         </code>
        </p>
        <p>
@@ -1275,9 +1183,109 @@ are either strings or a
        </p>
        <p>
         <code>
+         content_type
+        </code>
+        sets the
+        <code>
+         Content-Type
+        </code>
+        header.
+       </p>
+       <p>
+        There are 6 parameters that can describe the body of the response.
+        <code>
+         form
+        </code>
+        ,
+        <code>
+         json
+        </code>
+        ,
+        <code>
+         text
+        </code>
+        ,
+        <code>
+         html
+        </code>
+        ,
+        <code>
+         redirect
+        </code>
+        or
+        <code>
          body
         </code>
-        can be
+        . At most one of these can be supplied.
+       </p>
+       <p>
+        <code>
+         form
+        </code>
+        must be a
+        <code>
+         dict
+        </code>
+        , an iterable of 2-tuples or a
+        <a href="../multidict/#multidict">
+         <code>
+          MultiDict
+         </code>
+        </a>
+        where the keys are strings and the values
+are either strings or a
+        <a href="../multipart/#file">
+         <code>
+          File
+         </code>
+        </a>
+        .
+       </p>
+       <p>
+        <code>
+         json
+        </code>
+        must be data that is JSON-encodable.
+       </p>
+       <p>
+        <code>
+         text
+        </code>
+        must be a str.
+       </p>
+       <p>
+        <code>
+         html
+        </code>
+        must be a str containing an HTML document.
+       </p>
+       <p>
+        <code>
+         redirect
+        </code>
+        must be a str with the location to redirect to. Note that when
+        <code>
+         redirect
+        </code>
+        is provided the default
+        <code>
+         status
+        </code>
+        is
+        <code>
+         304
+        </code>
+        instead of
+        <code>
+         200
+        </code>
+        .
+       </p>
+       <p>
+        <code>
+         body
+        </code>
+        must be
         <code>
          bytes
         </code>
@@ -1288,6 +1296,17 @@ are either strings or a
         or an async iterable of
         <code>
          bytes
+        </code>
+        .
+       </p>
+       <p>
+        If none of these 6 parameters is supplied
+        <code>
+         body
+        </code>
+        defaults to
+        <code>
+         b''
         </code>
         .
        </p>
@@ -1307,46 +1326,6 @@ added as
          Set-Cookie
         </code>
         response headers.
-       </p>
-       <p>
-        <code>
-         content_type
-        </code>
-        ,
-        <code>
-         charset
-        </code>
-        and
-        <code>
-         boundary
-        </code>
-        together determine the
-        <code>
-         Content-Type
-        </code>
-        header. If
-        <code>
-         content_type
-        </code>
-        starts with
-        <code>
-         'multipart/'
-        </code>
-        we expect
-        <code>
-         boundary
-        </code>
-        to be
-present and add it to the
-        <code>
-         Content-Type
-        </code>
-        , otherwise
-        <code>
-         charset
-        </code>
-        gets added if
-present.
        </p>
        <p>
         This class implements
@@ -1394,162 +1373,6 @@ HTTP status code. This is implemented as
          status &lt; 400
         </code>
         .
-       </p>
-       <h2 id="formresponse">
-        <code>
-         FormResponse
-        </code>
-       </h2>
-       <p>
-        <code>
-         class FormResponse(body={}, boundary=None, *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)
-        </code>
-       </p>
-       <p>
-        A subclass of
-        <a href="./#response">
-         <code>
-          Response
-         </code>
-        </a>
-        that encodes the provided body as
-        <code>
-         multipart/form-data
-        </code>
-        and sets the appropriate headers.
-       </p>
-       <p>
-        Body must be a
-        <code>
-         dict
-        </code>
-        , an iterable of 2-tuples or a
-        <a href="../multidict/#multidict">
-         <code>
-          MultiDict
-         </code>
-        </a>
-        where the keys are strings and the values
-are either strings or a
-        <a href="../multipart/#file">
-         <code>
-          File
-         </code>
-        </a>
-        .
-       </p>
-       <p>
-        If no
-        <code>
-         boundary
-        </code>
-        is supplied a
-        <code>
-         boundary
-        </code>
-        is automatically generated.
-       </p>
-       <h2 id="htmlresponse">
-        <code>
-         HtmlResponse
-        </code>
-       </h2>
-       <p>
-        <code>
-         class HtmlResponse(body='', *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)
-        </code>
-       </p>
-       <p>
-        A subclass of
-        <a href="./#response">
-         <code>
-          Response
-         </code>
-        </a>
-        that encodes the provided body as
-        <code>
-         text/html
-        </code>
-        and sets the appropriate headers.
-       </p>
-       <p>
-        Body must be a string.
-       </p>
-       <h2 id="jsonresponse">
-        <code>
-         JsonResponse
-        </code>
-       </h2>
-       <p>
-        <code>
-         class JsonResponse(body={}, *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)
-        </code>
-       </p>
-       <p>
-        A subclass of
-        <a href="./#response">
-         <code>
-          Response
-         </code>
-        </a>
-        that encodes the provided body as
-        <code>
-         application/json
-        </code>
-        and sets the appropriate headers.
-       </p>
-       <p>
-        Body must be data that is JSON-encodable.
-       </p>
-       <h2 id="redirectresponse">
-        <code>
-         RedirectResponse
-        </code>
-       </h2>
-       <p>
-        <code>
-         class RedirectResponse(location, *, status=304, content_type=None, charset=None, set_cookies=[], headers=[], **headers)
-        </code>
-       </p>
-       <p>
-        A subclass of
-        <a href="./#response">
-         <code>
-          Response
-         </code>
-        </a>
-        that represents a redirect to the
-provided
-        <code>
-         location
-        </code>
-        .
-       </p>
-       <h2 id="textresponse">
-        <code>
-         TextResponse
-        </code>
-       </h2>
-       <p>
-        <code>
-         class Response(body='', *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)
-        </code>
-       </p>
-       <p>
-        A subclass of
-        <a href="./#response">
-         <code>
-          Response
-         </code>
-        </a>
-        that encodes the provided body as
-        <code>
-         text/plain
-        </code>
-        and sets the appropriate headers.
-       </p>
-       <p>
-        Body must be a string.
        </p>
        <h2 id="stream">
         <code>
