@@ -185,6 +185,10 @@ async def test_custom_error_pages():
             allow=', '.join(sorted(methods))
         )
 
+    @router.websocket_not_found
+    async def websocket_not_found(socket):
+        await socket.close(1337)
+
     view = asgi_to_jackie(router)
 
     response = await view(Request(method='GET', path='/api/'))
@@ -204,6 +208,46 @@ async def test_custom_error_pages():
         'code': 'method_not_allowed',
         'message': 'Method Not Allowed',
     }
+
+    input_queue = asyncio.Queue()
+    output_queue = asyncio.Queue()
+
+    scope = {
+        'type': 'websocket',
+        'path': '/api/',
+        'query_string': b'',
+        'headers': [],
+    }
+    task = asyncio.ensure_future(
+        router(scope, input_queue.get, output_queue.put)
+    )
+
+    await input_queue.put({'type': 'websocket.connect'})
+    assert await output_queue.get() == {
+        'type': 'websocket.close',
+        'code': 1337,
+    }
+    await task
+
+    input_queue = asyncio.Queue()
+    output_queue = asyncio.Queue()
+
+    scope = {
+        'type': 'websocket',
+        'path': '/other/',
+        'query_string': b'',
+        'headers': [],
+    }
+    task = asyncio.ensure_future(
+        router(scope, input_queue.get, output_queue.put)
+    )
+
+    await input_queue.put({'type': 'websocket.connect'})
+    assert await output_queue.get() == {
+        'type': 'websocket.close',
+        'code': 1337,
+    }
+    await task
 
 
 @pytest.mark.asyncio
