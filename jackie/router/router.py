@@ -91,6 +91,10 @@ class Router(JackieToAsgi):
         self._method_not_allowed = view
         return view
 
+    def websocket_not_found(self, view):
+        self._websocket_not_found = view
+        return view
+
     def middleware(self, middleware):
         self._middlewares.append(middleware)
         return middleware
