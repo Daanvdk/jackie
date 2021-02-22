@@ -88,6 +88,16 @@ def test_ok():
     assert not Response(status=500).ok
 
 
+def test_content_type():
+    response = Response(content_type='foo/bar')
+    assert response.headers['Content-Type'] == 'foo/bar'
+
+
+def test_content_type_overrides_body():
+    response = Response(text='foo', content_type='foo/bar')
+    assert response.headers['Content-Type'] == 'foo/bar'
+
+
 def test_set_cookies():
     response = Response(set_cookies=[
         Cookie('foo', 'bar'),
