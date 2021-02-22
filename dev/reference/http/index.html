@@ -1139,27 +1139,27 @@ uppercase.
        </h2>
        <p>
         <code>
-         class Response(*, form, status=200, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)
+         class Response(*, form, status=200, content_type=None, set_cookies=[], headers=[], **headers)
         </code>
         <br/>
         <code>
-         class Response(*, json, status=200, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)
+         class Response(*, json, status=200, content_type=None, set_cookies=[], headers=[], **headers)
         </code>
         <br/>
         <code>
-         class Response(*, text, status=200, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)
+         class Response(*, text, status=200, content_type=None, set_cookies=[], headers=[], **headers)
         </code>
         <br/>
         <code>
-         class Response(*, html, status=200, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)
+         class Response(*, html, status=200, content_type=None, set_cookies=[], headers=[], **headers)
         </code>
         <br/>
         <code>
-         class Response(*, redirect, status=304, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)
+         class Response(*, redirect, status=304, content_type=None, set_cookies=[], headers=[], **headers)
         </code>
         <br/>
         <code>
-         class Response(*, body=b'', status=200, content_type=NoneNone, set_cookies=[], unset_cookies=[], headers=[], **headers)
+         class Response(*, body=b'', status=200, content_type=NoneNone, set_cookies=[], headers=[], **headers)
         </code>
        </p>
        <p>
@@ -1331,16 +1331,6 @@ added as
          Set-Cookie
         </code>
         response headers.
-       </p>
-       <p>
-        <code>
-         unset_cookies
-        </code>
-        expects an iterable of strings that will be added as
-        <code>
-         Set-Cookie
-        </code>
-        response headers that unset the cookie with that name.
        </p>
        <p>
         This class implements
@@ -1647,7 +1637,7 @@ differentiate between
        </h4>
        <p>
         <code>
-         coroutine accept(headers=[], set_cookies=[], unset_cookies=[], **headers)
+         coroutine accept(headers=[], set_cookies=[], **headers)
         </code>
        </p>
        <p>
@@ -1685,16 +1675,6 @@ added as
          Set-Cookie
         </code>
         response headers.
-       </p>
-       <p>
-        <code>
-         unset_cookies
-        </code>
-        expects an iterable of strings that will be added as
-        <code>
-         Set-Cookie
-        </code>
-        response headers that unset the cookie with that name.
        </p>
        <h4 id="close">
         <code>
