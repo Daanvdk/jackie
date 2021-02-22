@@ -1,7 +1,12 @@
+from datetime import datetime, timezone
 import json
 
 from ..multidict import MultiDict, Headers
 from ..parse import parse_cookies
+from .cookie import Cookie
+
+
+EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
 class Socket:
@@ -28,8 +33,12 @@ class Socket:
     def cookies(self):
         return parse_cookies(self.headers.get('Cookie', ''))
 
-    async def accept(self, headers=[], set_cookies=[], **kwargs):
+    async def accept(
+        self, headers=[], set_cookies=[], unset_cookies=[], **kwargs,
+    ):
         headers = Headers(headers, **kwargs)
+        for name in unset_cookies:
+            set_cookies.append(Cookie(name, '', expires=EPOCH))
         for cookie in set_cookies:
             headers.appendlist('Set-Cookie', cookie.serialize())
         await self._accept(headers)

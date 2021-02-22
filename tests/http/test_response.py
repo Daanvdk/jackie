@@ -107,3 +107,14 @@ def test_set_cookies():
         'foo=bar',
         'bar="baz\\"qux"',
     ]
+
+
+def test_unset_cookies():
+    response = Response(
+        set_cookies=[Cookie('foo', 'bar')],
+        unset_cookies=['foo'],
+    )
+    assert response.headers.getlist('Set-Cookie') == [
+        'foo=bar',
+        'foo=""; Expires=Thu, 1 Jan 1970 00:00:00 GMT',
+    ]
