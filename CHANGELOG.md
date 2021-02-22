@@ -22,6 +22,8 @@ response headers as `Set-Cookie`-headers.
 - `jackie.client.Client` now has a `cookies` attribute that contains a dict of
 cookies. These are automatically sent as a `Cookie`-header on requests and
 modified by `Set-Cookie`-headers on responses.
+- `jackie.router.Router` now has a `websocket_not_found` method that sets a
+view for when no view could be found for a websocket connection.
 
 ## [0.1.0] - 2021-02-16
 ### Added

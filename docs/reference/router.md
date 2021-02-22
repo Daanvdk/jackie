@@ -56,6 +56,12 @@ path.
 Registers a view to be used in case there were views found but not for the
 right method.
 
+#### `websocket_not_found`
+`method websocket_not_found(view)`
+
+Registers a view to be used in case no view could be found for a websocket
+connection.
+
 #### `middleware`
 `method middleware(middleware)`
 
