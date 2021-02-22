@@ -4,7 +4,6 @@ import urllib.parse
 from asgiref.compatibility import guarantee_single_callable
 
 from ..bridge import bridge
-from ..multidict import Headers
 
 from .exceptions import Disconnect
 from .request import Request
@@ -82,14 +81,13 @@ class JackieToAsgi:
 
             state = 'handshake'
 
-            async def accept(headers=[], **kwargs):
+            async def accept(headers):
                 nonlocal state
                 if state != 'handshake':
                     raise ValueError(
                         'can only accept connection during handshake'
                     )
                 state = 'open'
-                headers = Headers(headers, **kwargs)
                 await send({
                     'type': 'websocket.accept',
                     'headers': [
@@ -98,7 +96,7 @@ class JackieToAsgi:
                     ],
                 })
 
-            async def close(code=1000):
+            async def close(code):
                 nonlocal state
                 if state == 'closed':
                     raise ValueError('connection already closed')

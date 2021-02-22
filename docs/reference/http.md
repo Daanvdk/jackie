@@ -23,6 +23,9 @@ A string representing the path that was requested.
 #### `headers`
 A [`Headers`](multidict.md#headers) object containing all request headers.
 
+#### `cookies`
+A dict mapping `str` to `str` containing the cookies sent by the client.
+
 ## `FormRequest`
 `class FormRequest(path='/', body={}, boundary=None, *, method='GET', query=[], headers=[], **headers)`
 
@@ -52,7 +55,7 @@ A subclass of [`Request`](http.md#request) that encodes the provided body as
 Body must be a string.
 
 ## `Response`
-`class Response(body=b'', *, status=200, content_type=None, charset=None, boundary=None,headers=[], **headers)`
+`class Response(body=b'', *, status=200, content_type=None, charset=None, boundary=None, set_cookies=[], headers=[], **headers)`
 
 Represents a response from the application to a client.
 
@@ -60,6 +63,9 @@ Both `query` and `headers` expect a `dict`, an iterable of 2-tuples or a
 [`MultiDict`](multidict.md#multidict).
 
 `body` can be `bytes`, an iterable of `bytes` or an async iterable of `bytes`.
+
+`set_cookies` expects an iterable of [`Cookie`](http.md#cookie) that will be
+added as `Set-Cookie` response headers.
 
 `content_type`, `charset` and `boundary` together determine the `Content-Type`
 header. If `content_type` starts with `'multipart/'` we expect `boundary` to be
@@ -80,7 +86,7 @@ A boolean indicating whether the response is considered 'ok' according to the
 HTTP status code. This is implemented as `status < 400`.
 
 ## `FormResponse`
-`class FormResponse(body={}, boundary=None, *, status=200, content_type=None, charset=None, headers=[], **headers)`
+`class FormResponse(body={}, boundary=None, *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)`
 
 A subclass of [`Response`](http.md#response) that encodes the provided body as
 `multipart/form-data` and sets the appropriate headers.
@@ -92,7 +98,7 @@ are either strings or a [`File`](multipart.md#file).
 If no `boundary` is supplied a `boundary` is automatically generated.
 
 ## `HtmlResponse`
-`class HtmlResponse(body='', *, status=200, content_type=None, charset=None, headers=[], **headers)`
+`class HtmlResponse(body='', *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)`
 
 A subclass of [`Response`](http.md#response) that encodes the provided body as
 `text/html` and sets the appropriate headers.
@@ -100,7 +106,7 @@ A subclass of [`Response`](http.md#response) that encodes the provided body as
 Body must be a string.
 
 ## `JsonResponse`
-`class JsonResponse(body={}, *, status=200, content_type=None, charset=None, headers=[], **headers)`
+`class JsonResponse(body={}, *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)`
 
 A subclass of [`Response`](http.md#response) that encodes the provided body as
 `application/json` and sets the appropriate headers.
@@ -108,13 +114,13 @@ A subclass of [`Response`](http.md#response) that encodes the provided body as
 Body must be data that is JSON-encodable.
 
 ## `RedirectResponse`
-`class RedirectResponse(location, *, status=304, content_type=None, charset=None, headers=[], **headers)`
+`class RedirectResponse(location, *, status=304, content_type=None, charset=None, set_cookies=[], headers=[], **headers)`
 
 A subclass of [`Response`](http.md#response) that represents a redirect to the
 provided `location`.
 
 ## `TextResponse`
-`class Response(body='', *, status=200, content_type=None, charset=None, headers=[], **headers)`
+`class Response(body='', *, status=200, content_type=None, charset=None, set_cookies=[], headers=[], **headers)`
 
 A subclass of [`Response`](http.md#response) that encodes the provided body as
 `text/plain` and sets the appropriate headers.
@@ -141,7 +147,7 @@ types.
 
 ### Methods
 #### `chunks`
-`chunks()`
+`method chunks()`
 Returns an async iterator of chunks of data. These chunks will be of type
 `bytes`.
 
@@ -184,14 +190,20 @@ A string representing the path that was requested.
 #### `headers`
 A [`Headers`](multidict.md#headers) object containing all request headers.
 
+#### `cookies`
+A dict mapping `str` to `str` containing the cookies sent by the client.
+
 ### Methods
 #### `accept`
-`coroutine accept(headers=[], **headers)`
+`coroutine accept(headers=[], set_cookies=[], **headers)`
 
 Accepts the connection with the provided response headers.
 
 `headers` expects a `dict`, an iterable of 2-tuples or a
 [`MultiDict`](multidict.md#multidict).
+
+`set_cookies` expects an iterable of [`Cookie`](http.md#cookie) that will be
+added as `Set-Cookie` response headers.
 
 #### `close`
 `coroutine close(code=1000)`
@@ -233,6 +245,59 @@ Sends data over the socket.
 Sends data over the socket as JSON.
 
 `data` must be JSON encodable.
+
+## `Cookie`
+`Cookie(name, value, *, expires=None, max_age=None, domain=None, path=None, secure=False, http_only=False, same_site=None)`
+
+Represents a cookie that can be set.
+
+`expires` must be a timezone aware datetime or `None`.
+
+`max_age` must be an integer or `None`.
+
+`domain` must be a str or `None`.
+
+`path` must be a str or `None`.
+
+`same_site` must be one of `'lax'`, `'strict'`, `'none'` or `None`.
+
+### Attributes
+#### `expires`
+A `datetime` indicating when the cookie will expire.
+Can also equal `None` in which case the cookie will expire at the end of the
+session.
+
+#### `max_age`
+An `int` indicating when the cookie will expire. The cookie will expire
+`max_age` seconds after receival.
+Can also equal `None` in which case the cookie will expire at the end of the
+session.
+
+#### `domain`
+The domain for which the cookie should be set as a `str`.
+Can also equal `None` in which case the current domain will be used.
+
+#### `path`
+The path for which the cookie should be set.
+Can also equal `None` in which case the root will be used.
+
+#### `same_site`
+A value indicating when to send the cookie. There are 3 options:
+
+- `strict`, which means the cookie will only be sent on requests originating
+from the domain/path the cookie belongs to itself.
+- `lax`, which is similar to `strict` but also includes the cookie when a user
+navigates to the domain/path.
+- `none`, which does no checking on the origin of the request.
+
+Can also equal `None` in which case the cookie will behave as `lax`. On older
+clients the behaviour of `none` will be used instead when no value is present.
+
+### Methods
+#### `encode`
+`method encode()`
+
+Returns a `str` of the cookie encoded as the value of `Set-Cookie`-header.
 
 ## `Disconnect`
 `class Disconnect(code=None)`
