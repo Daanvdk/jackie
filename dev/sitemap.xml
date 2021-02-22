@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url>
      <loc>https://daanvdk.github.io/jackie/dev/</loc>
-     <lastmod>2021-02-21</lastmod>
+     <lastmod>2021-02-22</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://daanvdk.github.io/jackie/dev/quick-start/installation/</loc>
-     <lastmod>2021-02-21</lastmod>
+     <lastmod>2021-02-22</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://daanvdk.github.io/jackie/dev/quick-start/hello-world/</loc>
-     <lastmod>2021-02-21</lastmod>
+     <lastmod>2021-02-22</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://daanvdk.github.io/jackie/dev/quick-start/deployment/</loc>
-     <lastmod>2021-02-21</lastmod>
+     <lastmod>2021-02-22</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://daanvdk.github.io/jackie/dev/reference/client/</loc>
-     <lastmod>2021-02-21</lastmod>
+     <lastmod>2021-02-22</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://daanvdk.github.io/jackie/dev/reference/http/</loc>
-     <lastmod>2021-02-21</lastmod>
+     <lastmod>2021-02-22</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://daanvdk.github.io/jackie/dev/reference/multidict/</loc>
-     <lastmod>2021-02-21</lastmod>
+     <lastmod>2021-02-22</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://daanvdk.github.io/jackie/dev/reference/multipart/</loc>
-     <lastmod>2021-02-21</lastmod>
+     <lastmod>2021-02-22</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://daanvdk.github.io/jackie/dev/reference/router/</loc>
-     <lastmod>2021-02-21</lastmod>
+     <lastmod>2021-02-22</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://daanvdk.github.io/jackie/dev/changelog/</loc>
-     <lastmod>2021-02-21</lastmod>
+     <lastmod>2021-02-22</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>

@@ -249,13 +249,27 @@
             </label>
             <ul class="md-nav__list" data-md-scrollfix="">
              <li class="md-nav__item">
+              <a class="md-nav__link" href="#unreleased">
+               Unreleased
+              </a>
+              <nav aria-label="Unreleased" class="md-nav">
+               <ul class="md-nav__list">
+                <li class="md-nav__item">
+                 <a class="md-nav__link" href="#added">
+                  Added
+                 </a>
+                </li>
+               </ul>
+              </nav>
+             </li>
+             <li class="md-nav__item">
               <a class="md-nav__link" href="#010-2021-02-16">
                0.1.0 - 2021-02-16
               </a>
               <nav aria-label="0.1.0 - 2021-02-16" class="md-nav">
                <ul class="md-nav__list">
                 <li class="md-nav__item">
-                 <a class="md-nav__link" href="#added">
+                 <a class="md-nav__link" href="#added_1">
                   Added
                  </a>
                 </li>
@@ -308,13 +322,27 @@
          </label>
          <ul class="md-nav__list" data-md-scrollfix="">
           <li class="md-nav__item">
+           <a class="md-nav__link" href="#unreleased">
+            Unreleased
+           </a>
+           <nav aria-label="Unreleased" class="md-nav">
+            <ul class="md-nav__list">
+             <li class="md-nav__item">
+              <a class="md-nav__link" href="#added">
+               Added
+              </a>
+             </li>
+            </ul>
+           </nav>
+          </li>
+          <li class="md-nav__item">
            <a class="md-nav__link" href="#010-2021-02-16">
             0.1.0 - 2021-02-16
            </a>
            <nav aria-label="0.1.0 - 2021-02-16" class="md-nav">
             <ul class="md-nav__list">
              <li class="md-nav__item">
-              <a class="md-nav__link" href="#added">
+              <a class="md-nav__link" href="#added_1">
                Added
               </a>
              </li>
@@ -352,13 +380,120 @@ and this project adheres to
         </a>
         .
        </p>
+       <h2 id="unreleased">
+        <a href="https://github.com/daanvdk/jackie/compare/v0.1.0..HEAD">
+         Unreleased
+        </a>
+       </h2>
+       <h3 id="added">
+        Added
+       </h3>
+       <ul>
+        <li>
+         <code>
+          jackie.http.Cookie
+         </code>
+         is a new class that contains information about setting
+a cookie. It takes a name and a value but also parameters like
+         <code>
+          expires
+         </code>
+         and
+         <code>
+          same_site
+         </code>
+         .
+        </li>
+        <li>
+         <code>
+          jackie.http.Request
+         </code>
+         now has an attribute
+         <code>
+          cookies
+         </code>
+         that contains a dict of
+cookies.
+        </li>
+        <li>
+         <code>
+          jackie.http.Response
+         </code>
+         now takes a keyword argument
+         <code>
+          set_cookies
+         </code>
+         which
+accepts an iterable of
+         <code>
+          jackie.http.Cookie
+         </code>
+         . These cookies will be added to the
+response headers as
+         <code>
+          Set-Cookie
+         </code>
+         -headers.
+        </li>
+        <li>
+         <code>
+          jackie.http.Socket
+         </code>
+         now has an attribute
+         <code>
+          cookies
+         </code>
+         that contains a dict of
+cookies.
+        </li>
+        <li>
+         <code>
+          jackie.http.Socket.accept
+         </code>
+         now takes a keyword argument
+         <code>
+          set_cookies
+         </code>
+         which
+accepts an iterable of
+         <code>
+          jackie.http.Cookie
+         </code>
+         . These cookies will be added to the
+response headers as
+         <code>
+          Set-Cookie
+         </code>
+         -headers.
+        </li>
+        <li>
+         <code>
+          jackie.client.Client
+         </code>
+         now has a
+         <code>
+          cookies
+         </code>
+         attribute that contains a dict of
+cookies. These are automatically sent as a
+         <code>
+          Cookie
+         </code>
+         -header on requests and
+modified by
+         <code>
+          Set-Cookie
+         </code>
+         -headers on responses.
+        </li>
+       </ul>
        <h2 id="010-2021-02-16">
         <a href="https://github.com/daanvdk/jackie/releases/tag/v0.1.0">
          0.1.0
         </a>
         - 2021-02-16
        </h2>
-       <h3 id="added">
+       <h3 id="added_1">
         Added
        </h3>
        <ul>
