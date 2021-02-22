@@ -249,13 +249,32 @@
             </label>
             <ul class="md-nav__list" data-md-scrollfix="">
              <li class="md-nav__item">
+              <a class="md-nav__link" href="#020-2021-02-22">
+               0.2.0 - 2021-02-22
+              </a>
+              <nav aria-label="0.2.0 - 2021-02-22" class="md-nav">
+               <ul class="md-nav__list">
+                <li class="md-nav__item">
+                 <a class="md-nav__link" href="#added">
+                  Added
+                 </a>
+                </li>
+                <li class="md-nav__item">
+                 <a class="md-nav__link" href="#removed">
+                  Removed
+                 </a>
+                </li>
+               </ul>
+              </nav>
+             </li>
+             <li class="md-nav__item">
               <a class="md-nav__link" href="#010-2021-02-16">
                0.1.0 - 2021-02-16
               </a>
               <nav aria-label="0.1.0 - 2021-02-16" class="md-nav">
                <ul class="md-nav__list">
                 <li class="md-nav__item">
-                 <a class="md-nav__link" href="#added">
+                 <a class="md-nav__link" href="#added_1">
                   Added
                  </a>
                 </li>
@@ -268,20 +287,25 @@
           <li class="md-nav__item md-nav__item--nested">
            <input class="md-nav__toggle md-toggle" data-md-toggle="version-select" id="version-select" type="checkbox"/>
            <label class="md-nav__link" for="version-select">
-            Version: 0.1.0 (latest)
+            Version: 0.2.0 (latest)
             <span class="md-nav__icon md-icon">
             </span>
            </label>
-           <nav aria-label="Version: 0.1.0 (latest)" class="md-nav" data-md-level="1">
+           <nav aria-label="Version: 0.2.0 (latest)" class="md-nav" data-md-level="1">
             <label class="md-nav__title" for="verison-select">
              <span class="md-nav__icon md-icon">
              </span>
-             Version: 0.1.0 (latest)
+             Version: 0.2.0 (latest)
             </label>
             <ul class="md-nav__list">
+             <li class="md-nav__item">
+              <a class="md-nav__link" href="../../0.1/changelog/">
+               0.1.0
+              </a>
+             </li>
              <li class="md-nav__item md-nav__item--active">
               <a class="md-nav__link md-nav__link--active" href="./">
-               0.1.0 (latest)
+               0.2.0 (latest)
               </a>
              </li>
              <li class="md-nav__item">
@@ -308,13 +332,32 @@
          </label>
          <ul class="md-nav__list" data-md-scrollfix="">
           <li class="md-nav__item">
+           <a class="md-nav__link" href="#020-2021-02-22">
+            0.2.0 - 2021-02-22
+           </a>
+           <nav aria-label="0.2.0 - 2021-02-22" class="md-nav">
+            <ul class="md-nav__list">
+             <li class="md-nav__item">
+              <a class="md-nav__link" href="#added">
+               Added
+              </a>
+             </li>
+             <li class="md-nav__item">
+              <a class="md-nav__link" href="#removed">
+               Removed
+              </a>
+             </li>
+            </ul>
+           </nav>
+          </li>
+          <li class="md-nav__item">
            <a class="md-nav__link" href="#010-2021-02-16">
             0.1.0 - 2021-02-16
            </a>
            <nav aria-label="0.1.0 - 2021-02-16" class="md-nav">
             <ul class="md-nav__list">
              <li class="md-nav__item">
-              <a class="md-nav__link" href="#added">
+              <a class="md-nav__link" href="#added_1">
                Added
               </a>
              </li>
@@ -352,13 +395,258 @@ and this project adheres to
         </a>
         .
        </p>
+       <h2 id="020-2021-02-22">
+        <a href="https://github.com/daanvdk/jackie/compare/v0.1.0..v0.2.0">
+         0.2.0
+        </a>
+        - 2021-02-22
+       </h2>
+       <h3 id="added">
+        Added
+       </h3>
+       <ul>
+        <li>
+         <code>
+          jackie.http.Cookie
+         </code>
+         is a new class that contains information about setting
+a cookie. It takes a name and a value but also parameters like
+         <code>
+          expires
+         </code>
+         and
+         <code>
+          same_site
+         </code>
+         .
+        </li>
+        <li>
+         <code>
+          jackie.http.Request
+         </code>
+         now has an attribute
+         <code>
+          cookies
+         </code>
+         that contains a dict of
+cookies.
+        </li>
+        <li>
+         <code>
+          jackie.http.Response
+         </code>
+         now takes a keyword argument
+         <code>
+          set_cookies
+         </code>
+         which
+accepts an iterable of
+         <code>
+          jackie.http.Cookie
+         </code>
+         . These cookies will be added to the
+response headers as
+         <code>
+          Set-Cookie
+         </code>
+         -headers.
+        </li>
+        <li>
+         <code>
+          jackie.http.Socket
+         </code>
+         now has an attribute
+         <code>
+          cookies
+         </code>
+         that contains a dict of
+cookies.
+        </li>
+        <li>
+         <code>
+          jackie.http.Socket.accept
+         </code>
+         now takes a keyword argument
+         <code>
+          set_cookies
+         </code>
+         which
+accepts an iterable of
+         <code>
+          jackie.http.Cookie
+         </code>
+         . These cookies will be added to the
+response headers as
+         <code>
+          Set-Cookie
+         </code>
+         -headers.
+        </li>
+        <li>
+         <code>
+          jackie.client.Client
+         </code>
+         now has a
+         <code>
+          cookies
+         </code>
+         attribute that contains a dict of
+cookies. These are automatically sent as a
+         <code>
+          Cookie
+         </code>
+         -header on requests and
+modified by
+         <code>
+          Set-Cookie
+         </code>
+         -headers on responses.
+        </li>
+        <li>
+         <code>
+          jackie.router.Router
+         </code>
+         now has a
+         <code>
+          websocket_not_found
+         </code>
+         method that sets a
+view for when no view could be found for a websocket connection.
+        </li>
+        <li>
+         <code>
+          jackie.router.Request
+         </code>
+         now can also take
+         <code>
+          form
+         </code>
+         ,
+         <code>
+          json
+         </code>
+         or
+         <code>
+          text
+         </code>
+         to specify
+the body of the request.
+        </li>
+        <li>
+         <code>
+          jackie.router.Response
+         </code>
+         now can also take
+         <code>
+          form
+         </code>
+         ,
+         <code>
+          json
+         </code>
+         ,
+         <code>
+          text
+         </code>
+         ,
+         <code>
+          html
+         </code>
+         or
+         <code>
+          redirect
+         </code>
+         to specify the body of the response.
+        </li>
+       </ul>
+       <h3 id="removed">
+        Removed
+       </h3>
+       <ul>
+        <li>
+         <code>
+          jackie.http.FormRequest
+         </code>
+         ,
+         <code>
+          jackie.http.JsonRequest
+         </code>
+         and
+         <code>
+          jackie.http.TextRequest
+         </code>
+         were removed in favor of the new
+         <code>
+          form
+         </code>
+         ,
+         <code>
+          json
+         </code>
+         and
+         <code>
+          text
+         </code>
+         parameters on
+         <code>
+          jackie.http.Request
+         </code>
+         .
+        </li>
+        <li>
+         <code>
+          jackie.http.FormResponse
+         </code>
+         ,
+         <code>
+          jackie.http.JsonRespone
+         </code>
+         ,
+         <code>
+          jackie.http.HtmlResponse
+         </code>
+         ,
+         <code>
+          jackie.http.RedirectResponse
+         </code>
+         and
+         <code>
+          jackie.http.TextRequest
+         </code>
+         were removed in favor of the new
+         <code>
+          form
+         </code>
+         ,
+         <code>
+          json
+         </code>
+         ,
+         <code>
+          html
+         </code>
+         ,
+         <code>
+          redirect
+         </code>
+         and
+         <code>
+          text
+         </code>
+         parameters on
+         <code>
+          jackie.http.Response
+         </code>
+         .
+        </li>
+       </ul>
        <h2 id="010-2021-02-16">
         <a href="https://github.com/daanvdk/jackie/releases/tag/v0.1.0">
          0.1.0
         </a>
         - 2021-02-16
        </h2>
-       <h3 id="added">
+       <h3 id="added_1">
         Added
        </h3>
        <ul>
