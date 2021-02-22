@@ -43,12 +43,12 @@ A [`Headers`](multidict.md#headers) object containing all request headers.
 A dict mapping `str` to `str` containing the cookies sent by the client.
 
 ## `Response`
-`class Response(*, form, status=200, content_type=None, set_cookies=[], headers=[], **headers)`  
-`class Response(*, json, status=200, content_type=None, set_cookies=[], headers=[], **headers)`  
-`class Response(*, text, status=200, content_type=None, set_cookies=[], headers=[], **headers)`  
-`class Response(*, html, status=200, content_type=None, set_cookies=[], headers=[], **headers)`  
-`class Response(*, redirect, status=304, content_type=None, set_cookies=[], headers=[], **headers)`  
-`class Response(*, body=b'', status=200, content_type=NoneNone, set_cookies=[], headers=[], **headers)`
+`class Response(*, form, status=200, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)`  
+`class Response(*, json, status=200, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)`  
+`class Response(*, text, status=200, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)`  
+`class Response(*, html, status=200, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)`  
+`class Response(*, redirect, status=304, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)`  
+`class Response(*, body=b'', status=200, content_type=NoneNone, set_cookies=[], unset_cookies=[], headers=[], **headers)`
 
 Represents a response from the application to a client.
 
@@ -79,6 +79,9 @@ If none of these 6 parameters is supplied `body` defaults to `b''`.
 
 `set_cookies` expects an iterable of [`Cookie`](http.md#cookie) that will be
 added as `Set-Cookie` response headers.
+
+`unset_cookies` expects an iterable of strings that will be added as
+`Set-Cookie` response headers that unset the cookie with that name.
 
 This class implements [`Stream`](http.md#stream).
 
@@ -161,7 +164,7 @@ A dict mapping `str` to `str` containing the cookies sent by the client.
 
 ### Methods
 #### `accept`
-`coroutine accept(headers=[], set_cookies=[], **headers)`
+`coroutine accept(headers=[], set_cookies=[], unset_cookies=[], **headers)`
 
 Accepts the connection with the provided response headers.
 
@@ -170,6 +173,9 @@ Accepts the connection with the provided response headers.
 
 `set_cookies` expects an iterable of [`Cookie`](http.md#cookie) that will be
 added as `Set-Cookie` response headers.
+
+`unset_cookies` expects an iterable of strings that will be added as
+`Set-Cookie` response headers that unset the cookie with that name.
 
 #### `close`
 `coroutine close(code=1000)`
