@@ -1,8 +1,13 @@
+from datetime import datetime, timezone
 import json
 
 from ..multidict import Headers
 from .. import multipart
 from .stream import Stream
+from .cookie import Cookie
+
+
+EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
 def form_body(body):
@@ -54,7 +59,7 @@ class Response(Stream):
 
     def __init__(
         self, *, status=None, content_type=None, headers=[], set_cookies=[],
-        **kwargs,
+        unset_cookies=[], **kwargs,
     ):
         body = None
         for key, get_body in BODY_TYPES.items():
@@ -76,6 +81,8 @@ class Response(Stream):
         for key, value in default_headers.items():
             self.headers.setdefault(key, value)
 
+        for name in unset_cookies:
+            set_cookies.append(Cookie(name, '', expires=EPOCH))
         for cookie in set_cookies:
             self.headers.appendlist('Set-Cookie', cookie.serialize())
 

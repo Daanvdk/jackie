@@ -32,3 +32,23 @@ async def test_set_cookies():
         'foo=bar',
         'bar="baz\\"qux"',
     ]
+
+
+@pytest.mark.asyncio
+async def test_unset_cookies():
+    headers = None
+
+    async def accept(headers_):
+        nonlocal headers
+        headers = headers_
+
+    socket = Socket(accept=accept, close=None, receive=None, send=None)
+    await socket.accept(
+        set_cookies=[Cookie('foo', 'bar')],
+        unset_cookies=['foo'],
+    )
+
+    assert headers.getlist('Set-Cookie') == [
+        'foo=bar',
+        'foo=""; Expires=Thu, 1 Jan 1970 00:00:00 GMT',
+    ]
