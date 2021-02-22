@@ -24,6 +24,20 @@ cookies. These are automatically sent as a `Cookie`-header on requests and
 modified by `Set-Cookie`-headers on responses.
 - `jackie.router.Router` now has a `websocket_not_found` method that sets a
 view for when no view could be found for a websocket connection.
+- `jackie.router.Request` now can also take `form`, `json` or `text` to specify
+the body of the request.
+- `jackie.router.Response` now can also take `form`, `json`, `text`, `html` or
+`redirect` to specify the body of the response.
+
+### Removed
+- `jackie.http.FormRequest`, `jackie.http.JsonRequest` and
+`jackie.http.TextRequest` were removed in favor of the new `form`, `json` and
+`text` parameters on `jackie.http.Request`.
+- `jackie.http.FormResponse`, `jackie.http.JsonRespone`,
+`jackie.http.HtmlResponse`, `jackie.http.RedirectResponse` and
+`jackie.http.TextRequest` were removed in favor of the new `form`, `json`,
+`html`, `redirect` and `text` parameters on `jackie.http.Response`.
+
 
 ## [0.1.0] - 2021-02-16
 ### Added

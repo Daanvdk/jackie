@@ -3,7 +3,7 @@ site_url: https://daanvdk.github.io/jackie
 
 theme:
   name: material
-  custom_dir: docs/overrides
+  custom_dir: overrides
   features:
     - navigation.sections
   palette:

@@ -1,12 +1,12 @@
 import pytest
 
-from jackie.http import FormRequest, JsonRequest, Request, TextRequest
+from jackie.http import Request
 from jackie.multipart import File
 
 
 @pytest.mark.asyncio()
 async def test_form_request():
-    request = FormRequest(body={
+    request = Request(form={
         'foo': '123',
         'bar': 'multi\nline\nstring',
         'baz': File('baz.png', 'image/png', b'pngcontent'),
@@ -41,7 +41,7 @@ async def test_form_request():
 
 @pytest.mark.asyncio
 async def test_json_request():
-    request = JsonRequest(body={'foo': 'bar'})
+    request = Request(json={'foo': 'bar'})
     assert request.content_type == 'application/json'
     assert request.charset == 'UTF-8'
     assert await request.body() == b'{"foo": "bar"}'
@@ -50,7 +50,7 @@ async def test_json_request():
 
 @pytest.mark.asyncio
 async def test_text_request():
-    request = TextRequest(body='foobar')
+    request = Request(text='foobar')
     assert request.content_type == 'text/plain'
     assert request.charset == 'UTF-8'
     assert await request.body() == b'foobar'

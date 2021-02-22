@@ -2,14 +2,14 @@
 Here we provide a simple 'Hello, World!'-example:
 ```python
 from jackie.router import Router
-from jackie.http import TextResponse
+from jackie.http import Response
 
 app = Router()
 
 @app.get('/')
 def hello_world(request):
     name = request.query.get('name', 'World')
-    return TextResponse(f'Hello, {name}!')
+    return Response(text=f'Hello, {name}!')
 ```
 
 We start with creating a `Router`, this router is used to send requests to the

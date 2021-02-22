@@ -22,14 +22,7 @@ modified by `Set-Cookie`-headers on responses.
 Returns a response of type [Response](http.md#response) from the app for a
 request described by the arguments.
 
-Both `query` and `headers` expect a `dict`, an iterable of 2-tuples or a
-[`MultiDict`](multidict.md#multidict).
-
-There are 4 parameters that can describe the body of the request. `form`,
-`json`, `text` or `body`. At most one of these can be supplied and they
-determine whether the request will be a [`FormRequest`](http.md#formrequest),
-[`JsonRequest`](http.md#jsonrequest), [`TextRequest`](http.md#textrequest) or
-[`Request`](http.md#request) respectively.
+See [Request](http.md#request) for an explanation of the parameters.
 
 #### `get`
 `coroutine get(path='/', *, form, method='GET', query=[], headers=[], **headers)`  

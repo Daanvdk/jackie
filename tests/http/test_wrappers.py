@@ -4,7 +4,7 @@ import urllib.parse
 import pytest
 
 from jackie.http import (
-    asgi_to_jackie, jackie_to_asgi, Request, Response, Socket, TextResponse,
+    asgi_to_jackie, jackie_to_asgi, Request, Response, Socket
 )
 from jackie.http.exceptions import Disconnect
 
@@ -14,7 +14,7 @@ async def test_jackie_to_asgi():
     @jackie_to_asgi
     async def app(request):
         name = request.query.get('name', 'World')
-        return TextResponse(f'Hello, {name}!')
+        return Response(text=f'Hello, {name}!')
 
     input_queue = asyncio.Queue()
     output_queue = asyncio.Queue()
@@ -117,7 +117,7 @@ def test_double_wrap():
 async def test_jackie_to_asgi_request_body():
     @jackie_to_asgi
     async def app(request):
-        return Response(request.chunks())
+        return Response(body=request.chunks())
 
     input_queue = asyncio.Queue()
     output_queue = asyncio.Queue()

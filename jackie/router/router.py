@@ -1,16 +1,16 @@
-from ..http import TextResponse
+from ..http import Response
 from ..http.wrappers import jackie_to_asgi, AsgiToJackie, JackieToAsgi
 from .matcher import Matcher
 
 
 async def not_found(request):
-    return TextResponse('Not Found', status=404)
+    return Response(status=404, text='Not Found')
 
 
 async def method_not_allowed(request, methods):
-    return TextResponse(
-        'Method Not Allowed',
+    return Response(
         status=405,
+        text='Method Not Allowed',
         allow=', '.join(sorted(methods)),
     )
 
