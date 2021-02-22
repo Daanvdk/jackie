@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "jackie"
-version = "0.1.0"
+version = "0.2.0"
 description = "A minimal ASGI web framework."
 authors = ["Daan van der Kallen <mail@daanvdk.com>"]
 license = "MIT"
