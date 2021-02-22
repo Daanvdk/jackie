@@ -447,6 +447,21 @@ response headers as
         </li>
         <li>
          <code>
+          jackie.http.Respones
+         </code>
+         now takes a keyword argument
+         <code>
+          unset_cookies
+         </code>
+         which
+accepts an iterable of strings. These strings will be used as names for
+         <code>
+          Set-Cookie
+         </code>
+         response headers that unset the cookie.
+        </li>
+        <li>
+         <code>
           jackie.http.Socket
          </code>
          now has an attribute
@@ -475,6 +490,20 @@ response headers as
           Set-Cookie
          </code>
          -headers.
+        </li>
+        <li>
+         <code>
+          jackie.http.Socket.accept
+         </code>
+         now takes a keyword argument
+         <code>
+          unset_cookies
+         </code>
+         which accepts an iterable of strings. These strings will be used as names for
+         <code>
+          Set-Cookie
+         </code>
+         response headers that unset the cookie.
         </li>
         <li>
          <code>
