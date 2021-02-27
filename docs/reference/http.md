@@ -4,6 +4,7 @@ This module provides the building blocks to work with HTTP in jackie.
 `class Request(path='/', *, form, method='GET', query=[], headers=[], **headers)`
 `class Request(path='/', *, json, method='GET', query=[], headers=[], **headers)`
 `class Request(path='/', *, text, method='GET', query=[], headers=[], **headers)`
+`class Request(path='/', *, file, method='GET', query=[], headers=[], **headers)`
 `class Request(path='/', *, body=b'', method='GET', query=[], headers=[], **headers)`
 
 Represents a request from a client to the application.
@@ -11,8 +12,8 @@ Represents a request from a client to the application.
 Both `query` and `headers` expect a `dict`, an iterable of 2-tuples or a
 [`MultiDict`](multidict.md#multidict).
 
-There are 4 parameters that can describe the body of the request. `form`,
-`json`, `text` or `body`. At most one of these can be supplied.
+There are 5 parameters that can describe the body of the request. `form`,
+`json`, `text`, `file` or `body`. At most one of these can be supplied.
 
 `form` must be a `dict`, an iterable of 2-tuples or a
 [`MultiDict`](multidict.md#multidict) where the keys are strings and the values
@@ -21,6 +22,9 @@ are either strings or a [`File`](multipart.md#file).
 `json` must be data that is JSON-encodable.
 
 `text` must be a str.
+
+`file` must be a path to a file (paths can be `str`, `bytes` or anything that
+implements `os.PathLike`).
 
 `body` must be `bytes`, an iterable of `bytes` or an async iterable of `bytes`.
 
@@ -48,6 +52,7 @@ A dict mapping `str` to `str` containing the cookies sent by the client.
 `class Response(*, text, status=200, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)`  
 `class Response(*, html, status=200, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)`  
 `class Response(*, redirect, status=304, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)`  
+`class Response(*, file, status=200, content_type=None, set_cookies=[], unset_cookies=[], headers=[], **headers)`  
 `class Response(*, body=b'', status=200, content_type=NoneNone, set_cookies=[], unset_cookies=[], headers=[], **headers)`
 
 Represents a response from the application to a client.
@@ -57,8 +62,9 @@ Both `query` and `headers` expect a `dict`, an iterable of 2-tuples or a
 
 `content_type` sets the `Content-Type` header.
 
-There are 6 parameters that can describe the body of the response. `form`,
-`json`, `text`, `html`, `redirect` or `body`. At most one of these can be supplied.
+There are 7 parameters that can describe the body of the response. `form`,
+`json`, `text`, `html`, `redirect`, `file` or `body`. At most one of these can
+be supplied.
 
 `form` must be a `dict`, an iterable of 2-tuples or a
 [`MultiDict`](multidict.md#multidict) where the keys are strings and the values
@@ -72,6 +78,9 @@ are either strings or a [`File`](multipart.md#file).
 
 `redirect` must be a str with the location to redirect to. Note that when
 `redirect` is provided the default `status` is `304` instead of `200`.
+
+`file` must be a path to a file (paths can be `str`, `bytes` or anything that
+implements `os.PathLike`).
 
 `body` must be `bytes`, an iterable of `bytes` or an async iterable of `bytes`.
 

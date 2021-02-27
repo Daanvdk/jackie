@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 import asyncio
 import json
+import os
 import urllib.parse
+
+import aiofiles
 
 from ..multidict import MultiDict
 from ..parse import parse_content_type
@@ -11,6 +14,31 @@ from .. import multipart
 async def iterable_to_async_iterable(iterable):
     for value in iterable:
         yield value
+
+
+class SendFile:
+
+    def __init__(self, path, *, offset=0, size=-1):
+        self.path = os.fspath(path)
+        self.offset = offset
+        self.size = size
+
+    async def chunks(self, *, chunk_size=4096):
+        async with aiofiles.open(self.path, 'rb') as f:
+            if self.offset != 0:
+                await f.seek(self.offset)
+            if chunk_size < 0:
+                yield await f.read(self.size)
+                return
+            size = self.size
+            while size != 0:
+                chunk = await f.read(
+                    chunk_size if size < 0 else min(chunk_size, size)
+                )
+                if not chunk:
+                    break
+                size -= len(chunk)
+                yield chunk
 
 
 class Stream(ABC):
@@ -23,7 +51,7 @@ class Stream(ABC):
         self._cache = []
         self._chunks = chunks.__aiter__()
 
-    async def chunks(self):
+    async def chunks(self, *, expand_files=True):
         index = 0
         while True:
             if index < len(self._cache):
@@ -32,9 +60,14 @@ class Stream(ABC):
                 task = asyncio.ensure_future(self._chunks.__anext__())
                 self._cache.append(task)
             try:
-                yield await task
+                chunk = await task
             except StopAsyncIteration:
                 break
+            if isinstance(chunk, SendFile) and expand_files:
+                async for chunk in chunk.chunks():
+                    yield chunk
+            else:
+                yield chunk
             index += 1
 
     async def body(self):

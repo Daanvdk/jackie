@@ -1,3 +1,5 @@
+import tempfile
+
 import pytest
 
 from jackie.http import Request
@@ -53,6 +55,26 @@ async def test_text_request():
     request = Request(text='foobar')
     assert request.content_type == 'text/plain'
     assert request.charset == 'UTF-8'
+    assert await request.body() == b'foobar'
+    assert await request.text() == 'foobar'
+
+
+@pytest.mark.asyncio
+async def test_file_request():
+    with tempfile.NamedTemporaryFile(suffix='.txt') as f:
+        f.write(b'foobar')
+        f.flush()
+
+        request = Request(file=f.name)
+        assert request.content_type == 'text/plain'
+        assert await request.body() == b'foobar'
+        assert await request.text() == 'foobar'
+
+
+@pytest.mark.asyncio
+async def test_multipart_file_request():
+    request = Request(file=File('foo.txt', 'text/plain', b'foobar'))
+    assert request.content_type == 'text/plain'
     assert await request.body() == b'foobar'
     assert await request.text() == 'foobar'
 

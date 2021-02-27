@@ -9,6 +9,7 @@ from .exceptions import Disconnect
 from .request import Request
 from .response import Response
 from .socket import Socket
+from .stream import SendFile
 
 
 # Jackie to ASGI
@@ -60,12 +61,28 @@ class JackieToAsgi:
                         for key, value in response.headers.allitems()
                     ],
                 })
-                async for chunk in response.chunks():
-                    await send({
-                        'type': 'http.response.body',
-                        'body': chunk,
-                        'more_body': True,
-                    })
+                async for chunk in response.chunks(expand_files=(
+                    'http.response.zerocopysend'
+                    not in
+                    scope.get('extensions', {})
+                )):
+                    if isinstance(chunk, SendFile):
+                        message = {
+                            'type': 'http.response.zerocopysend',
+                            'file': open(chunk.path, 'rb'),
+                            'more_body': True,
+                        }
+                        if chunk.offset != 0:
+                            message['offset'] = chunk.offset
+                        if chunk.size >= 0:
+                            message['count'] = chunk.size
+                        await send(message)
+                    else:
+                        await send({
+                            'type': 'http.response.body',
+                            'body': chunk,
+                            'more_body': True,
+                        })
                 await send({
                     'type': 'http.response.body',
                     'body': b'',
@@ -190,10 +207,21 @@ async def get_response_body(receive, cleanup):
         message = await receive()
         if message['type'] == 'http.response.body':
             yield message.get('body', b'')
-            if not message.get('more_body', False):
-                break
+        elif message['type'] == 'http.response.zerocopysend':
+            try:
+                offset = message['offset']
+            except KeyError:
+                offset = message['file'].tell()
+            message['file'].close()
+            yield SendFile(
+                message['file'].name,
+                offset=offset,
+                size=message.get('count', -1),
+            )
         else:
             raise ValueError(f'unexpected message type: {message["type"]}')
+        if not message.get('more_body', False):
+            break
     for task in cleanup:
         task.cancel()
 
@@ -245,6 +273,9 @@ class AsgiToJackie:
                     'router': request.router,
                     'name': request.view_name,
                     'params': params,
+                },
+                'extensions': {
+                    'http.response.zerocopysend': {},
                 },
             }
             app_task = asyncio.ensure_future(
