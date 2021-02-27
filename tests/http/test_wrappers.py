@@ -1,12 +1,14 @@
 import asyncio
 import urllib.parse
+import tempfile
 
 import pytest
 
 from jackie.http import (
-    asgi_to_jackie, jackie_to_asgi, Request, Response, Socket
+    asgi_to_jackie, jackie_to_asgi, Request, Response, Socket,
+    Disconnect,
 )
-from jackie.http.exceptions import Disconnect
+from jackie.http.stream import SendFile
 
 
 @pytest.mark.asyncio
@@ -684,3 +686,160 @@ async def test_asgi_to_jackie_invalid_request():
 
     with pytest.raises(TypeError):
         await view(None)
+
+
+@pytest.mark.asyncio
+async def test_jackie_to_asgi_send_file():
+    with tempfile.NamedTemporaryFile(suffix='.txt') as f:
+        f.write(b'foobar')
+        f.flush()
+
+        @jackie_to_asgi
+        async def app(request):
+            offset = int(request.query.get('offset', '0'))
+            size = int(request.query.get('size', '-1'))
+            return Response(body=[SendFile(f.name, offset=offset, size=size)])
+
+        input_queue = asyncio.Queue()
+        output_queue = asyncio.Queue()
+
+        scope = {
+            'type': 'http',
+            'method': 'GET',
+            'path': '/',
+            'query_string': b'',
+            'headers': [],
+            'extensions': {'http.response.zerocopysend': {}},
+        }
+        task = asyncio.ensure_future(
+            app(scope, input_queue.get, output_queue.put)
+        )
+
+        message = await output_queue.get()
+        assert message['type'] == 'http.response.start'
+        assert message['status'] == 200
+        assert message['headers'] == []
+
+        chunks = []
+        while True:
+            message = await output_queue.get()
+            if not (
+                message['type'] == 'http.response.body' and
+                message['body'] == b''
+            ):
+                chunks.append(message)
+            if not message.pop('more_body'):
+                break
+        assert len(chunks) == 1
+        assert set(chunks[0]) == {'type', 'file'}
+        assert chunks[0]['type'] == 'http.response.zerocopysend'
+        assert chunks[0]['file'].name == f.name
+        await task
+
+        input_queue = asyncio.Queue()
+        output_queue = asyncio.Queue()
+
+        scope = {
+            'type': 'http',
+            'method': 'GET',
+            'path': '/',
+            'query_string': b'offset=3',
+            'headers': [],
+            'extensions': {'http.response.zerocopysend': {}},
+        }
+        task = asyncio.ensure_future(
+            app(scope, input_queue.get, output_queue.put)
+        )
+
+        message = await output_queue.get()
+        assert message['type'] == 'http.response.start'
+        assert message['status'] == 200
+        assert message['headers'] == []
+
+        chunks = []
+        while True:
+            message = await output_queue.get()
+            if not (
+                message['type'] == 'http.response.body' and
+                message['body'] == b''
+            ):
+                chunks.append(message)
+            if not message.pop('more_body'):
+                break
+        assert len(chunks) == 1
+        assert set(chunks[0]) == {'type', 'file', 'offset'}
+        assert chunks[0]['type'] == 'http.response.zerocopysend'
+        assert chunks[0]['file'].name == f.name
+        assert chunks[0]['offset'] == 3
+        await task
+
+        input_queue = asyncio.Queue()
+        output_queue = asyncio.Queue()
+
+        scope = {
+            'type': 'http',
+            'method': 'GET',
+            'path': '/',
+            'query_string': b'size=3',
+            'headers': [],
+            'extensions': {'http.response.zerocopysend': {}},
+        }
+        task = asyncio.ensure_future(
+            app(scope, input_queue.get, output_queue.put)
+        )
+
+        message = await output_queue.get()
+        assert message['type'] == 'http.response.start'
+        assert message['status'] == 200
+        assert message['headers'] == []
+
+        chunks = []
+        while True:
+            message = await output_queue.get()
+            if not (
+                message['type'] == 'http.response.body' and
+                message['body'] == b''
+            ):
+                chunks.append(message)
+            if not message.pop('more_body'):
+                break
+        assert len(chunks) == 1
+        assert set(chunks[0]) == {'type', 'file', 'count'}
+        assert chunks[0]['type'] == 'http.response.zerocopysend'
+        assert chunks[0]['file'].name == f.name
+        assert chunks[0]['count'] == 3
+        await task
+
+
+@pytest.mark.asyncio
+async def test_asgi_to_jackie_send_file():
+    with tempfile.NamedTemporaryFile(suffix='.txt') as f:
+        f.write(b'foobar')
+        f.flush()
+
+        @asgi_to_jackie
+        async def view(scope, receive, send):
+            await send({
+                'type': 'http.response.start',
+                'status': 200,
+                'headers': [],
+            })
+            query = urllib.parse.parse_qs(scope['query_string'].decode())
+            message = {
+                'type': 'http.response.zerocopysend',
+                'file': open(f.name, 'rb'),
+            }
+            if 'offset' in query:
+                message['offset'] = int(query['offset'][-1])
+            if 'size' in query:
+                message['count'] = int(query['size'][-1])
+            await send(message)
+
+        response = await view(Request())
+        assert await response.body() == b'foobar'
+
+        response = await view(Request(query={'offset': 3}))
+        assert await response.body() == b'bar'
+
+        response = await view(Request(query={'size': 3}))
+        assert await response.body() == b'foo'

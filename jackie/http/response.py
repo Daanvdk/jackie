@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 import json
+import mimetypes
 
 from ..multidict import Headers
 from .. import multipart
-from .stream import Stream
+from .stream import Stream, SendFile
 from .cookie import Cookie
 
 
@@ -41,6 +42,21 @@ def redirect_body(body):
     return 304, body, headers
 
 
+def file_body(body):
+    if isinstance(body, multipart.File):
+        content_type = body._content_type
+        body = body.content
+    else:
+        chunk = SendFile(body)
+        content_type, _ = mimetypes.guess_type(chunk.path)
+        body = [chunk]
+    if content_type is None:
+        headers = {}
+    else:
+        headers = {'Content-Type': content_type}
+    return 200, body, headers
+
+
 def base_body(body):
     return 200, body, {}
 
@@ -51,6 +67,7 @@ BODY_TYPES = {
     'text': text_body,
     'html': html_body,
     'redirect': redirect_body,
+    'file': file_body,
     'body': base_body,
 }
 

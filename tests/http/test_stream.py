@@ -1,7 +1,9 @@
 import asyncio
+import tempfile
+
 import pytest
 
-from jackie.http.stream import Stream
+from jackie.http.stream import Stream, SendFile
 
 
 # Very simple stream implementation that allows us to specify the content type
@@ -248,3 +250,60 @@ def test_parse_content_type_with_boundary():
     assert stream.content_type == 'multipart/form-data'
     assert stream.charset == 'UTF-8'
     assert stream.boundary == 'foo'
+
+
+@pytest.mark.asyncio
+async def test_send_file_stream():
+    with tempfile.NamedTemporaryFile() as f:
+        f.write(b'foobar')
+        f.flush()
+
+        stream = ContentTypeStream(
+            body=[SendFile(f.name)],
+            content_type='text/plain; charset=UTF-8',
+        )
+        assert await stream.text() == 'foobar'
+
+
+@pytest.mark.asyncio
+async def test_send_file_chunks():
+    with tempfile.NamedTemporaryFile() as f:
+        f.write(b'foobar')
+        f.flush()
+
+        send_file = SendFile(f.name)
+        chunks = [chunk async for chunk in send_file.chunks(chunk_size=3)]
+        assert chunks == [b'foo', b'bar']
+
+
+@pytest.mark.asyncio
+async def test_send_file_big_chunk():
+    with tempfile.NamedTemporaryFile() as f:
+        f.write(b'foobar')
+        f.flush()
+
+        send_file = SendFile(f.name)
+        chunks = [chunk async for chunk in send_file.chunks(chunk_size=-1)]
+        assert chunks == [b'foobar']
+
+
+@pytest.mark.asyncio
+async def test_send_file_offset():
+    with tempfile.NamedTemporaryFile() as f:
+        f.write(b'foobar')
+        f.flush()
+
+        send_file = SendFile(f.name, offset=3)
+        chunks = [chunk async for chunk in send_file.chunks(chunk_size=-1)]
+        assert chunks == [b'bar']
+
+
+@pytest.mark.asyncio
+async def test_send_file_size():
+    with tempfile.NamedTemporaryFile() as f:
+        f.write(b'foobar')
+        f.flush()
+
+        send_file = SendFile(f.name, size=3)
+        chunks = [chunk async for chunk in send_file.chunks(chunk_size=-1)]
+        assert chunks == [b'foo']

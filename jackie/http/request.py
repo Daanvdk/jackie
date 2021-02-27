@@ -1,9 +1,10 @@
 import json
+import mimetypes
 
 from ..multidict import MultiDict, Headers
 from .. import multipart
 from ..parse import parse_cookies
-from .stream import Stream
+from .stream import Stream, SendFile
 
 
 def form_body(body):
@@ -22,6 +23,17 @@ def text_body(body):
     return body, 'text/plain; charset=UTF-8'
 
 
+def file_body(body):
+    if isinstance(body, multipart.File):
+        content_type = body._content_type
+        body = body.content
+    else:
+        chunk = SendFile(body)
+        content_type, _ = mimetypes.guess_type(chunk.path)
+        body = [chunk]
+    return body, content_type
+
+
 def base_body(body):
     return body, None
 
@@ -30,6 +42,7 @@ BODY_TYPES = {
     'form': form_body,
     'json': json_body,
     'text': text_body,
+    'file': file_body,
     'body': base_body,
 }
 

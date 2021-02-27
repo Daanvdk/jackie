@@ -1,3 +1,5 @@
+import tempfile
+
 import pytest
 
 from jackie.http import Response, Cookie
@@ -118,3 +120,35 @@ def test_unset_cookies():
         'foo=bar',
         'foo=""; Expires=Thu, 1 Jan 1970 00:00:00 GMT',
     ]
+
+
+@pytest.mark.asyncio
+async def test_file_response():
+    with tempfile.NamedTemporaryFile(suffix='.txt') as f:
+        f.write(b'foobar')
+        f.flush()
+
+        response = Response(file=f.name)
+        assert response.content_type == 'text/plain'
+        assert await response.body() == b'foobar'
+        assert await response.text() == 'foobar'
+
+
+@pytest.mark.asyncio
+async def test_multipart_file_response():
+    response = Response(file=File('foo.txt', 'text/plain', b'foobar'))
+    assert response.content_type == 'text/plain'
+    assert await response.body() == b'foobar'
+    assert await response.text() == 'foobar'
+
+
+@pytest.mark.asyncio
+async def test_file_response_unknown_type():
+    with tempfile.NamedTemporaryFile(suffix='.unknown') as f:
+        f.write(b'foobar')
+        f.flush()
+
+        response = Response(file=f.name)
+        assert response.content_type is None
+        assert await response.body() == b'foobar'
+        assert await response.text() == 'foobar'
