@@ -4,13 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [Unreleased]
 ### Added
 - `jackie.http.Request` and `jackie.http.Response` now accept a `file`-keyword
 argument to specify their body. This takes a path to a file and will guess the
 default content type based on the file's name. This will also use the
 [`http.response.zerocopysend`](https://asgi.readthedocs.io/en/latest/extensions.html#zero-copy-send)
 extension if available.
+- `jackie.http.Response` now takes a keyword argument `unset_cookies` which
+accepts an iterable of strings. These strings will be used as names for
+`Set-Cookie` response headers that unset the cookie.
+- `jackie.http.Socket.accept` now takes a keyword argument `unset_cookies`
+which accepts an iterable of strings. These strings will be used as names for
+`Set-Cookie` response headers that unset the cookie.
 ### Fixed
 - `Disconnect` is now correctly exposed from `jackie.http`.
 
@@ -24,17 +30,11 @@ cookies.
 - `jackie.http.Response` now takes a keyword argument `set_cookies` which
 accepts an iterable of `jackie.http.Cookie`. These cookies will be added to the
 response headers as `Set-Cookie`-headers.
-- `jackie.http.Respones` now takes a keyword argument `unset_cookies` which
-accepts an iterable of strings. These strings will be used as names for
-`Set-Cookie` response headers that unset the cookie.
 - `jackie.http.Socket` now has an attribute `cookies` that contains a dict of
 cookies.
 - `jackie.http.Socket.accept` now takes a keyword argument `set_cookies` which
 accepts an iterable of `jackie.http.Cookie`. These cookies will be added to the
 response headers as `Set-Cookie`-headers.
-- `jackie.http.Socket.accept` now takes a keyword argument `unset_cookies`
-which accepts an iterable of strings. These strings will be used as names for
-`Set-Cookie` response headers that unset the cookie.
 - `jackie.client.Client` now has a `cookies` attribute that contains a dict of
 cookies. These are automatically sent as a `Cookie`-header on requests and
 modified by `Set-Cookie`-headers on responses.
@@ -66,5 +66,6 @@ uses the HTTP API described above for the implementation of it's endpoints.
 - A `Client` that makes it easy to interact with ASGI applications for purposes
 like testing.
 
+[Unreleased]: https://github.com/daanvdk/jackie/compare/v0.2.0..HEAD
 [0.2.0]: https://github.com/daanvdk/jackie/compare/v0.1.0..v0.2.0
 [0.1.0]: https://github.com/daanvdk/jackie/releases/tag/v0.1.0
