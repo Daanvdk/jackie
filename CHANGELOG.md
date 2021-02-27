@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- `jackie.http.Request` and `jackie.http.Response` now accept a `file`-keyword
+argument to specify their body. This takes a path to a file and will guess the
+default content type based on the file's name. This will also use the
+[`http.response.zerocopysend`](https://asgi.readthedocs.io/en/latest/extensions.html#zero-copy-send)
+extension if available.
+### Fixed
+- `Disconnect` is now correctly exposed from `jackie.http`.
+
 ## [0.2.0] - 2021-02-22
 ### Added
 - `jackie.http.Cookie` is a new class that contains information about setting
